@@ -1,5 +1,8 @@
 # Playbook Engine Dependencies
 # Version: v0.1.0
 # Dependencies will be added in future versions
-
-# Core dependencies placeholder
+# Initial baseline dependencies for connectivity and agent development
+psycopg2-binary
+requests
+python-dotenv
+json
