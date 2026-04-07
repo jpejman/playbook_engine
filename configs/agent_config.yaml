@@ -1,0 +1,43 @@
+# Playbook Engine Agent Configuration
+# Version: v0.1.0
+# Timestamp: 2026-04-07
+
+project_name: "playbook_engine"
+version: "v0.1.0"
+
+generation_agent:
+  enabled: true
+  model: "placeholder"
+  temperature: 0.7
+  max_tokens: 2000
+  context_window: 4000
+
+qa_agent:
+  enabled: true
+  evaluation_criteria:
+    - completeness
+    - accuracy
+    - actionability
+    - clarity
+  scoring_threshold: 0.7
+  feedback_enabled: true
+
+orchestration:
+  workflow: "generation -> evaluation -> feedback"
+  max_iterations: 3
+  timeout_seconds: 300
+  retry_attempts: 2
+
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/playbook_engine.log"
+
+data:
+  input_formats:
+    - json
+    - yaml
+  output_formats:
+    - json
+    - yaml
+  validation_enabled: true
