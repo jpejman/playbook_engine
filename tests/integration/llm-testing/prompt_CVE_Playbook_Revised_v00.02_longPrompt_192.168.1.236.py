@@ -61,7 +61,7 @@ def generate_remediation_guide(prompt, api_url, model):
         "model": model,
         "prompt": prompt,
         "options": {
-            "main_gpu": 2,  # Force usage of GPU 2
+            "main_gpu": 0,  # Force usage of GPU 2
             "num_gpu": 1    # Use only one GPU
         }
     }

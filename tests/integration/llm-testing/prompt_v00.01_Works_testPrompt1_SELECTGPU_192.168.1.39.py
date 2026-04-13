@@ -2,7 +2,7 @@ import requests
 import json
 
 # API Configuration
-#API_ENDPOINT = "http://192.168.1.38:11434/api/generate"
+API_ENDPOINT = "http://10.0.0.100:11434/api/generate"
 #API_ENDPOINT = "http://192.168.1.100:11434/api/generate"
 #MODEL_NAME = "llama3.1:70b"
 #MODEL_NAME = "llama3.3:latest"

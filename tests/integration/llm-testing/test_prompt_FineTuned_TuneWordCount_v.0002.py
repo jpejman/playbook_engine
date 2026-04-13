@@ -9,7 +9,7 @@ from datetime import datetime
 #OLLAMA_HOST = "http://192.168.1.39:11434"
 #OLLAMA_HOST = "http://192.168.1.41:11434"
 #OLLAMA_HOST = "http://192.168.1.197:11434"
-OLLAMA_HOST = "http://10.0.0.100:11434"
+OLLAMA_HOST = "http://10.0.0.202:11434"
 
 OLLAMA_ENDPOINT = f"{OLLAMA_HOST}/api/generate"
 

@@ -1,0 +1,609 @@
+Version: v00.010.07
+Timestamp: 2026-04-07_14-12-20
+Model: llama3.1:latest
+Prompt 1:
+You are a security analyst tasked with remediating vulnerabilities reported by a vulnerability scanner on your network. 
+     Write a detailed remediation playbook for **[CVE-2024-9313]**, which affects **[LINUX]** running **[UBUNTU]** version **[OS_VERSION]**.
+     The CVE description highlights the root cause as: *Authd PAM module before version 0.3.5 can allow broker-managed users to 
+     impersonate any other user managed by the same broker and perform any PAM operation with it, including authenticating as them.
+Actual Word Count: 420
+Total Time Taken: 127.99 seconds
+
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:20.819741626Z","response":"**","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:21.02569569Z","response":"Rem","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:21.234311061Z","response":"ed","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:21.443666867Z","response":"iation","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:21.652457264Z","response":" Play","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:21.861748971Z","response":"book","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:22.071216145Z","response":" for","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:22.2803046Z","response":" CVE","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:22.489338665Z","response":"-","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:22.698656109Z","response":"202","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:22.908546056Z","response":"4","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:23.119623085Z","response":"-","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:23.323176695Z","response":"931","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:23.525970853Z","response":"3","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:23.730272061Z","response":"**\n\n","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:23.933167929Z","response":"**","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:24.137939049Z","response":"Overview","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:24.340474651Z","response":":","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:24.54508547Z","response":"**\n","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:24.749782672Z","response":"CVE","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:24.958052524Z","response":"-","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:25.162923641Z","response":"202","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:25.365427455Z","response":"4","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:25.567590229Z","response":"-","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:25.769827031Z","response":"931","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:25.974270898Z","response":"3","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:26.182539828Z","response":" affects","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:26.395844751Z","response":" the","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:26.604666498Z","response":" Auth","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:26.810414697Z","response":"d","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:27.018993258Z","response":" P","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:27.227306251Z","response":"AM","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:27.435602172Z","response":" module","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:27.641412469Z","response":" on","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:27.847663078Z","response":" Linux","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:28.055446671Z","response":" systems","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:28.264206Z","response":" running","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:28.47298172Z","response":" Ubuntu","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:28.680934839Z","response":" OS","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:28.88926844Z","response":" version","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:29.098306323Z","response":".","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:29.305416412Z","response":" This","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:29.511143513Z","response":" vulnerability","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:29.716200657Z","response":" allows","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:29.920388475Z","response":" broker","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:30.124460925Z","response":"-man","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:30.335437127Z","response":"aged","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:30.5419614Z","response":" users","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:30.748415612Z","response":" to","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:30.954795224Z","response":" imperson","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:31.161165309Z","response":"ate","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:31.366974993Z","response":" any","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:31.57278558Z","response":" other","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:31.779909014Z","response":" user","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:31.986328251Z","response":" managed","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:32.19318179Z","response":" by","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:32.399926397Z","response":" the","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:32.61432569Z","response":" same","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:32.887355141Z","response":" broker","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:33.142477564Z","response":" and","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:33.350830311Z","response":" perform","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:33.564060766Z","response":" any","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:33.784452281Z","response":" P","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:33.995659705Z","response":"AM","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:34.21602979Z","response":" operation","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:34.435776458Z","response":" with","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:34.654624252Z","response":" it","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:34.860073882Z","response":",","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:35.061657552Z","response":" including","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:35.264092647Z","response":" authentic","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:35.470233671Z","response":"ating","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:35.675157598Z","response":" as","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:35.888823687Z","response":" them","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:36.093275419Z","response":".\n\n","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:36.301846585Z","response":"**","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:36.520328264Z","response":"Rem","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:36.725561198Z","response":"ed","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:36.930549304Z","response":"iation","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:37.135747003Z","response":" Steps","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:37.345331678Z","response":":","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:37.556460575Z","response":"**\n\n","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:37.764489335Z","response":"###","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:37.97275981Z","response":" Step","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:38.184460317Z","response":" ","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:38.389836069Z","response":"1","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:38.599804753Z","response":":","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:38.805574373Z","response":" Verify","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:39.00984746Z","response":" Vulner","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:39.219470697Z","response":"ability","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:39.424675509Z","response":"\n\n","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:39.636528943Z","response":"Before","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:39.840291605Z","response":" proceeding","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:40.047038945Z","response":",","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:40.25275748Z","response":" verify","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:40.458933329Z","response":" that","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:40.664211579Z","response":" the","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:40.869845725Z","response":" system","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:41.074756025Z","response":" is","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:41.280152176Z","response":" indeed","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:41.485916074Z","response":" vulnerable","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:41.693131914Z","response":" using","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:41.896653973Z","response":" the","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:42.101993057Z","response":" following","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:42.308503714Z","response":" command","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:42.521096935Z","response":":\n\n","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:42.732371064Z","response":"```","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:42.940546949Z","response":"bash","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:43.148673654Z","response":"\n","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:43.353788006Z","response":"apt","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:43.567006277Z","response":" policy","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:43.771233969Z","response":" auth","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:43.978560033Z","response":"d","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:44.185681886Z","response":"-p","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:44.392763533Z","response":"am","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:44.602962629Z","response":" |","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:44.809855132Z","response":" grep","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:45.017870066Z","response":" \"","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:45.223623697Z","response":"Candidate","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:45.4284446Z","response":"\"\n","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:45.63453002Z","response":"``","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:45.839438808Z","response":"`\n\n","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:46.044533985Z","response":"This","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:46.249663816Z","response":" should","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:46.458863329Z","response":" return","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:46.669648684Z","response":" a","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:46.876622138Z","response":" version","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:47.074132448Z","response":" number","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:47.280761368Z","response":".","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:47.48463183Z","response":" Compare","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:47.689769597Z","response":" this","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:47.896003928Z","response":" with","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:48.110671833Z","response":" the","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:48.315166644Z","response":" affected","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:48.524086645Z","response":" version","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:48.73905313Z","response":" (","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:48.943545567Z","response":"less","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:49.158120529Z","response":" than","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:49.3630417Z","response":" ","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:49.570631428Z","response":"0","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:49.776626871Z","response":".","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:49.982239185Z","response":"3","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:50.197356783Z","response":".","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:50.403053828Z","response":"5","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:50.612988177Z","response":")","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:50.824302822Z","response":" to","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:51.037044229Z","response":" confirm","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:51.24624697Z","response":".\n\n","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:51.457399Z","response":"###","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:51.669201649Z","response":" Step","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:51.880186947Z","response":" ","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:52.089085177Z","response":"2","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:52.301003482Z","response":":","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:52.510444018Z","response":" Update","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:52.719412198Z","response":" Auth","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:52.926271289Z","response":"d","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:53.139913884Z","response":" P","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:53.345642887Z","response":"AM","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:53.56053892Z","response":" Module","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:53.766608432Z","response":"\n\n","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:53.973667776Z","response":"Update","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:54.188331574Z","response":" the","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:54.395596184Z","response":" Auth","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:54.604951951Z","response":"d","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:54.819675972Z","response":" P","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:55.024756711Z","response":"AM","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:55.233025902Z","response":" module","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:55.448246313Z","response":" to","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:55.65309101Z","response":" at","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:55.86370378Z","response":" least","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:56.078178304Z","response":" version","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:56.28884748Z","response":" ","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:56.503616415Z","response":"0","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:56.713349778Z","response":".","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:56.930125782Z","response":"3","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:57.139239405Z","response":".","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:57.350135456Z","response":"5","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:57.563151076Z","response":",","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:57.774039793Z","response":" which","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:57.989616091Z","response":" is","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:58.19618049Z","response":" the","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:58.41143797Z","response":" patched","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:58.619236889Z","response":" version","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:58.828655393Z","response":":\n\n","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:59.034579022Z","response":"```","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:59.244993591Z","response":"bash","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:59.460118823Z","response":"\n","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:59.670027635Z","response":"sudo","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:12:59.878134342Z","response":" apt","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:00.084988864Z","response":" update","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:00.29231571Z","response":" \u0026\u0026","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:00.498760233Z","response":" sudo","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:00.706271857Z","response":" apt","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:00.919964015Z","response":" full","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:01.128072795Z","response":"-up","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:01.339699145Z","response":"grade","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:01.551709593Z","response":"\n","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:01.760716556Z","response":"``","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:01.969107104Z","response":"`\n\n","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:02.176810396Z","response":"Once","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:02.392913328Z","response":" the","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:02.598870299Z","response":" upgrade","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:02.815399211Z","response":" is","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:03.020222037Z","response":" complete","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:03.23108157Z","response":",","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:03.444619279Z","response":" verify","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:03.651988544Z","response":" that","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:03.858087581Z","response":" the","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:04.069168278Z","response":" updated","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:04.279061881Z","response":" version","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:04.49295679Z","response":" includes","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:04.705200314Z","response":" changes","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:04.918669835Z","response":" for","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:05.13225352Z","response":" CVE","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:05.341753217Z","response":"-","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:05.550119639Z","response":"202","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:05.759053025Z","response":"4","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:05.967247226Z","response":"-","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:06.175467164Z","response":"931","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:06.385076386Z","response":"3","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:06.593950881Z","response":".\n\n","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:06.802037369Z","response":"###","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:07.017794225Z","response":" Step","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:07.230425686Z","response":" ","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:07.444688643Z","response":"3","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:07.653912533Z","response":":","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:07.866652638Z","response":" Configure","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:08.080543158Z","response":" Broker","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:08.293579978Z","response":" Permissions","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:08.508291095Z","response":"\n\n","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:08.718069843Z","response":"The","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:08.932994179Z","response":" vulnerability","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:09.141061953Z","response":" allows","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:09.349697761Z","response":" imperson","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:09.565257015Z","response":"ation","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:09.775370411Z","response":" of","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:09.984942131Z","response":" any","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:10.195699643Z","response":" user","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:10.405451793Z","response":" managed","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:10.61528876Z","response":" by","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:10.825911449Z","response":" the","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:11.037801912Z","response":" same","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:11.252056483Z","response":" broker","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:11.459169741Z","response":".","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:11.668793548Z","response":" Ensure","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:11.876284713Z","response":" strict","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:12.0837454Z","response":" permission","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:12.289807268Z","response":" controls","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:12.49844058Z","response":" are","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:12.705003245Z","response":" in","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:12.910062614Z","response":" place","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:13.116102241Z","response":" to","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:13.324004524Z","response":" limit","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:13.529113818Z","response":" who","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:13.735030633Z","response":" can","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:13.943269447Z","response":" manage","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:14.177870105Z","response":" users","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:14.392681499Z","response":" and","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:14.608123214Z","response":" brokers","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:14.81819952Z","response":":\n\n","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:15.026039508Z","response":"1","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:15.235208965Z","response":".","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:15.451624213Z","response":" **","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:15.657792991Z","response":"Restr","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:15.873089764Z","response":"ict","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:16.082160016Z","response":" access","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:16.299020198Z","response":" to","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:16.506530086Z","response":" Auth","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:16.717489576Z","response":"d","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:16.927732745Z","response":" P","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:17.144091387Z","response":"AM","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:17.351032952Z","response":" module","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:17.562606472Z","response":" configuration","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:17.773087265Z","response":" files","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:17.981321592Z","response":"**:","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:18.188993383Z","response":" Set","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:18.396259617Z","response":" permissions","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:18.603316867Z","response":" on","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:18.810146213Z","response":" `/","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:19.025628704Z","response":"etc","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:19.239700132Z","response":"/p","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:19.44035411Z","response":"am","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:19.641687892Z","response":".d","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:19.861684708Z","response":"/auth","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:20.071923348Z","response":"d","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:20.279768406Z","response":"`","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:20.494836381Z","response":" and","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:20.704822036Z","response":" other","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:20.912915068Z","response":" related","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:21.127578975Z","response":" config","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:21.338839721Z","response":" files","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:21.548769782Z","response":" to","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:21.757637965Z","response":" ensure","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:21.965110064Z","response":" only","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:22.172665177Z","response":" authorized","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:22.380375112Z","response":" personnel","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:22.591858593Z","response":" can","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:22.805802953Z","response":" modify","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:23.01542639Z","response":" them","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:23.215956267Z","response":".\n","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:23.425047798Z","response":"2","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:23.63384571Z","response":".","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:23.855278816Z","response":" **","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:24.087586911Z","response":"Implement","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:24.317839425Z","response":" Role","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:24.546220084Z","response":"-Based","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:24.775204894Z","response":" Access","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:25.007569373Z","response":" Control","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:25.247755502Z","response":" (","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:25.468287832Z","response":"RB","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:25.713356996Z","response":"AC","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:25.94784852Z","response":")**","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:26.164378774Z","response":":","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:26.368614079Z","response":" Consider","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:26.572513967Z","response":" implementing","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:26.789316241Z","response":" RB","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:27.027149132Z","response":"AC","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:27.236422694Z","response":" within","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:27.445375026Z","response":" the","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:27.653203191Z","response":" broker","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:27.861381953Z","response":" system","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:28.069731775Z","response":" to","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:28.28200785Z","response":" restrict","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:28.496136746Z","response":" which","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:28.705354105Z","response":" users","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:28.907238658Z","response":" have","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:29.126879376Z","response":" permission","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:29.343031362Z","response":" to","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:29.557842496Z","response":" manage","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:29.772352716Z","response":" brokers","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:29.982107629Z","response":" and","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:30.191632954Z","response":" users","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:30.399395947Z","response":".\n\n","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:30.607893146Z","response":"###","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:30.816233029Z","response":" Step","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:31.030486479Z","response":" ","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:31.24423365Z","response":"4","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:31.45114673Z","response":":","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:31.65268214Z","response":" Monitor","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:31.864481173Z","response":" Authentication","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:32.073900709Z","response":" Activity","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:32.291787483Z","response":"\n\n","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:32.499884502Z","response":"Post","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:32.716492111Z","response":"-","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:32.926974847Z","response":"rem","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:33.13754071Z","response":"ed","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:33.35233946Z","response":"iation","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:33.561278998Z","response":",","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:33.772434615Z","response":" monitor","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:33.982241326Z","response":" authentication","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:34.205338288Z","response":" logs","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:34.422430735Z","response":" closely","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:34.633346152Z","response":" for","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:34.843858225Z","response":" suspicious","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:35.054618712Z","response":" activity","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:35.265043911Z","response":" indicative","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:35.481382646Z","response":" of","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:35.691304483Z","response":" imperson","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:35.905688356Z","response":"ation","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:36.117301201Z","response":" attempts","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:36.326204719Z","response":":\n\n","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:36.536701522Z","response":"1","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:36.747080887Z","response":".","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:36.955688542Z","response":" **","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:37.167734076Z","response":"Configure","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:37.382812901Z","response":" logging","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:37.598682748Z","response":"**:","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:37.814394899Z","response":" Ensure","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:38.029315418Z","response":" that","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:38.243419948Z","response":" P","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:38.458225703Z","response":"AM","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:38.672089943Z","response":" events","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:38.886157314Z","response":" are","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:39.098175857Z","response":" logged","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:39.312011624Z","response":" at","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:39.52677066Z","response":" a","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:39.741174491Z","response":" gran","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:39.955685553Z","response":"ular","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:40.170181387Z","response":" level","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:40.384852168Z","response":" to","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:40.59939016Z","response":" capture","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:40.814116605Z","response":" detailed","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:41.028886922Z","response":" information","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:41.24282955Z","response":" about","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:41.457541908Z","response":" each","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:41.673531769Z","response":" login","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:41.888514936Z","response":" attempt","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:42.103073716Z","response":".\n","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:42.317716826Z","response":"2","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:42.532836147Z","response":".","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:42.747794927Z","response":" **","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:42.9625626Z","response":"Monitor","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:43.177710074Z","response":" logs","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:43.392748504Z","response":" regularly","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:43.608293552Z","response":"**:","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:43.823303669Z","response":" Regular","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:44.038352267Z","response":"ly","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:44.253218895Z","response":" review","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:44.468322566Z","response":" and","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:44.683428092Z","response":" analyze","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:44.898222373Z","response":" these","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:45.113174752Z","response":" logs","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:45.329374617Z","response":" for","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:45.546679492Z","response":" signs","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:45.763623731Z","response":" of","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:45.977379248Z","response":" unauthorized","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:46.189516914Z","response":" access","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:46.404699394Z","response":".\n\n","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:46.619609182Z","response":"###","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:46.835491713Z","response":" Step","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:47.051341412Z","response":" ","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:47.265799465Z","response":"5","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:47.480951576Z","response":":","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:47.695872026Z","response":" Validate","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:47.911143222Z","response":" Remed","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:48.126225342Z","response":"iation","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:48.341075439Z","response":"\n\n","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:48.554464238Z","response":"After","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:48.767472817Z","response":" completing","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:48.981622892Z","response":" the","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:49.195892222Z","response":" above","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:49.408398088Z","response":" steps","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:49.631075315Z","response":",","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:49.847017928Z","response":" test","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:50.062557526Z","response":" the","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:50.27789162Z","response":" system","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:50.493379251Z","response":" by","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:50.708176267Z","response":" attempting","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:50.923767913Z","response":" to","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:51.139332487Z","response":" imperson","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:51.355144616Z","response":"ate","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:51.570938611Z","response":" another","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:51.786351683Z","response":" user","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:52.001925816Z","response":" with","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:52.217359967Z","response":" the","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:52.433034207Z","response":" broker","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:52.648567654Z","response":" managed","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:52.865653557Z","response":" by","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:53.08128075Z","response":" you","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:53.290463663Z","response":",","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:53.503069316Z","response":" ensuring","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:53.718318591Z","response":" that","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:53.933952776Z","response":" P","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:54.148105748Z","response":"AM","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:54.363221812Z","response":" operations","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:54.579773216Z","response":" fail","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:54.797135827Z","response":" as","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:55.012277841Z","response":" expected","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:55.227993329Z","response":" for","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:55.443914372Z","response":" unauthorized","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:55.659354594Z","response":" users","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:55.875320291Z","response":".\n\n","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:56.092726745Z","response":"**","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:56.303583132Z","response":"Additional","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:56.515664263Z","response":" Recommendations","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:56.727825964Z","response":":","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:56.939959483Z","response":"**\n\n","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:57.153014087Z","response":"-","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:57.367095774Z","response":" **","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:57.579528655Z","response":"Implement","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:57.793442088Z","response":" a","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:58.007498007Z","response":" vulnerability","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:58.223740592Z","response":" management","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:58.437976297Z","response":" process","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:58.648047845Z","response":"**:","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:58.859581861Z","response":" Regular","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:59.070953883Z","response":"ly","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:59.284676969Z","response":" scan","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:59.500374914Z","response":" your","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:59.722931836Z","response":" network","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:13:59.941878614Z","response":" for","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:00.158924063Z","response":" vulnerabilities","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:00.374248438Z","response":" and","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:00.591993648Z","response":" address","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:00.809652514Z","response":" them","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:01.025549091Z","response":" promptly","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:01.240589394Z","response":".\n","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:01.455313355Z","response":"-","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:01.672300555Z","response":" **","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:01.888821291Z","response":"Keep","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:02.106100127Z","response":" software","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:02.323000564Z","response":" up","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:02.539994094Z","response":"-to","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:02.757522067Z","response":"-date","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:02.974460035Z","response":"**:","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:03.188981526Z","response":" Ensure","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:03.400260464Z","response":" all","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:03.614913061Z","response":" software","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:03.825436584Z","response":" on","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:04.041299388Z","response":" your","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:04.255730229Z","response":" system","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:04.472759298Z","response":" is","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:04.69100777Z","response":" updated","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:04.908292526Z","response":" to","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:05.125253015Z","response":" the","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:05.342142993Z","response":" latest","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:05.559421799Z","response":" versions","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:05.778927606Z","response":" available","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:06.059733171Z","response":" from","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:06.327083086Z","response":" official","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:06.544287092Z","response":" sources","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:06.757174413Z","response":".\n","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:06.972790865Z","response":"-","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:07.190557043Z","response":" **","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:07.40801817Z","response":"Monitor","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:07.624553374Z","response":" security","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:07.841504085Z","response":" forums","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:08.057648987Z","response":"**:","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:08.274020332Z","response":" Follow","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:08.490367302Z","response":" security","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:08.706944845Z","response":" forums","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:08.923645097Z","response":" and","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:09.140074873Z","response":" mailing","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:09.356332677Z","response":" lists","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:09.572682782Z","response":" for","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:09.789149677Z","response":" any","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:10.005836193Z","response":" additional","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:10.22284863Z","response":" information","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:10.439404382Z","response":" about","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:10.656270425Z","response":" CVE","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:10.873018365Z","response":"-","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:11.090325003Z","response":"202","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:11.306943853Z","response":"4","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:11.523776734Z","response":"-","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:11.740439676Z","response":"931","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:11.957234295Z","response":"3","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:12.17378655Z","response":" or","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:12.390569746Z","response":" related","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:12.606920574Z","response":" exploits","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:12.822507551Z","response":".\n\n","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:13.039271894Z","response":"**","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:13.255949975Z","response":"Tracking","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:13.472584704Z","response":":","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:13.689338746Z","response":"**\n\n","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:13.906417006Z","response":"Maint","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:14.122906333Z","response":"ain","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:14.340043694Z","response":" a","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:14.557773926Z","response":" record","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:14.776655052Z","response":" of","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:14.997536155Z","response":" actions","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:15.219573914Z","response":" taken","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:15.437420542Z","response":" during","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:15.654271527Z","response":" this","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:15.871664777Z","response":" remed","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:16.089313325Z","response":"iation","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:16.306761367Z","response":",","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:16.52347242Z","response":" including","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:16.740988881Z","response":":\n\n","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:16.958094072Z","response":"-","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:17.176406683Z","response":" Date","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:17.394053237Z","response":" and","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:17.611197441Z","response":" time","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:17.827811983Z","response":" of","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:18.045308877Z","response":" each","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:18.261778177Z","response":" step","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:18.477577491Z","response":"\n","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:18.694474732Z","response":"-","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:18.912219661Z","response":" Command","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:19.12889154Z","response":" executed","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:19.345910479Z","response":" and","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:19.563629098Z","response":" output","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:19.78122128Z","response":" relevant","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:19.998339325Z","response":" to","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:20.216099162Z","response":" the","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:20.433941524Z","response":" task","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:20.65146149Z","response":" at","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:20.869318809Z","response":" hand","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:21.085892815Z","response":"\n","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:21.303618478Z","response":"-","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:21.521774606Z","response":" Any","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:21.739733235Z","response":" errors","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:21.959318Z","response":" encountered","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:22.176726279Z","response":" and","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:22.389059902Z","response":" resolution","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:22.604547143Z","response":" steps","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:22.821727554Z","response":"\n\n","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:23.039261176Z","response":"This","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:23.254591232Z","response":" ensures","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:23.472845555Z","response":" that","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:23.691766317Z","response":" all","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:23.908879Z","response":" activities","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:24.126420327Z","response":" are","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:24.344027488Z","response":" properly","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:24.56178972Z","response":" documented","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:24.779746856Z","response":" for","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:24.997620245Z","response":" future","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:25.217654822Z","response":" audits","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:25.430681664Z","response":" and","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:25.645298735Z","response":" allows","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:25.859788777Z","response":" quick","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:26.07345118Z","response":" reference","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:26.287521806Z","response":" in","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:26.501549062Z","response":" case","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:26.715996926Z","response":" further","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:26.932269838Z","response":" investigation","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:27.147328235Z","response":" is","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:27.365003343Z","response":" required","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:27.581699267Z","response":".","done":false}
+{"model":"llama3.1:latest","created_at":"2026-04-07T18:14:27.794900275Z","response":"","done":true,"done_reason":"stop","context":[128006,882,128007,271,2675,527,264,4868,18738,51920,449,1323,19586,1113,52227,5068,555,264,34104,21438,389,701,4009,13,720,257,9842,264,11944,34630,7246,87153,369,3146,58,68902,12,2366,19,12,25717,18,79441,11,902,22223,3146,58,43,29498,79441,4401,3146,58,4594,70549,52,79441,2373,3146,58,3204,10907,79441,627,257,578,46869,4096,22020,279,3789,5353,439,25,353,5197,67,393,1428,4793,1603,2373,220,15,13,18,13,20,649,2187,23117,21110,3359,3932,311,720,257,60849,349,904,1023,1217,9152,555,279,1890,23117,323,2804,904,393,1428,5784,449,433,11,2737,13513,1113,439,1124,13,128009,128006,78191,128007,271,334,6728,291,7246,7199,2239,369,46869,12,2366,19,12,25717,18,57277,334,42144,25,1035,68902,12,2366,19,12,25717,18,22223,279,7517,67,393,1428,4793,389,14677,6067,4401,36060,10293,2373,13,1115,34104,6276,23117,21110,3359,3932,311,60849,349,904,1023,1217,9152,555,279,1890,23117,323,2804,904,393,1428,5784,449,433,11,2737,13513,1113,439,1124,382,334,6728,291,7246,40961,25,57277,14711,15166,220,16,25,26504,81211,2968,271,10438,39547,11,10356,430,279,1887,374,13118,20134,1701,279,2768,3290,1473,74694,47316,198,2756,4947,4259,67,2320,309,765,21332,330,65001,702,14196,19884,2028,1288,471,264,2373,1396,13,24702,420,449,279,11754,2373,320,1752,1109,220,15,13,18,13,20,8,311,7838,382,14711,15166,220,17,25,5666,7517,67,393,1428,14026,271,4387,279,7517,67,393,1428,4793,311,520,3325,2373,220,15,13,18,13,20,11,902,374,279,72832,2373,1473,74694,47316,198,19413,20697,2713,1024,26481,20697,2539,5352,7082,198,14196,19884,12805,279,14234,374,4686,11,10356,430,279,6177,2373,5764,4442,369,46869,12,2366,19,12,25717,18,382,14711,15166,220,18,25,22958,53801,54457,271,791,34104,6276,60849,367,315,904,1217,9152,555,279,1890,23117,13,30379,7452,8041,11835,527,304,2035,311,4017,889,649,10299,3932,323,46436,1473,16,13,3146,51460,858,2680,311,7517,67,393,1428,4793,6683,3626,96618,2638,8709,389,38401,12380,4420,309,962,17823,67,63,323,1023,5552,2242,3626,311,6106,1193,19144,17274,649,5719,1124,627,17,13,3146,64080,15766,61439,9742,7935,320,30359,1741,33395,25,21829,25976,29074,1741,2949,279,23117,1887,311,9067,902,3932,617,8041,311,10299,46436,323,3932,382,14711,15166,220,19,25,24423,24446,15330,271,4226,12,1864,291,7246,11,8891,17066,18929,15499,369,32427,5820,64005,315,60849,367,13865,1473,16,13,3146,29660,8558,96618,30379,430,393,1428,4455,527,14042,520,264,16109,1299,2237,311,12602,11944,2038,922,1855,5982,4879,627,17,13,3146,31198,18929,15870,96618,29900,398,3477,323,24564,1521,18929,369,12195,315,45571,2680,382,14711,15166,220,20,25,24163,97970,7246,271,6153,27666,279,3485,7504,11,1296,279,1887,555,19969,311,60849,349,2500,1217,449,279,23117,9152,555,499,11,23391,430,393,1428,7677,3775,439,3685,369,45571,3932,382,334,30119,89520,25,57277,12,3146,64080,264,34104,6373,1920,96618,29900,398,8737,701,4009,369,52227,323,2686,1124,40522,627,12,3146,19999,3241,709,4791,18920,96618,30379,682,3241,389,701,1887,374,6177,311,279,5652,11028,2561,505,4033,8336,627,12,3146,31198,4868,25907,96618,11359,4868,25907,323,33859,11725,369,904,5217,2038,922,46869,12,2366,19,12,25717,18,477,5552,63488,382,334,38219,25,57277,67834,467,264,3335,315,6299,4529,2391,420,34630,7246,11,2737,1473,12,2696,323,892,315,1855,3094,198,12,7498,16070,323,2612,9959,311,279,3465,520,1450,198,12,5884,6103,23926,323,11175,7504,271,2028,26420,430,682,7640,527,10489,27470,369,3938,75620,323,6276,4062,5905,304,1162,4726,8990,374,2631,13],"total_duration":127980474986,"load_duration":217942559,"prompt_eval_count":129,"prompt_eval_duration":785387567,"eval_count":598,"eval_duration":126673923177}

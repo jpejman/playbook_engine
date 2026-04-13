@@ -4,7 +4,7 @@ import time
 from datetime import datetime
 
 # Configuration
-OLLAMA_HOST = "http://192.168.1.197:11434"
+OLLAMA_HOST = "http://10.0.0.100:11434"
 #OLLAMA_HOST = "http://192.168.1.38:11434"
 #OLLAMA_HOST = "http://192.168.1.39:11434"
 #OLLAMA_HOST = "http://192.168.1.41:11434"

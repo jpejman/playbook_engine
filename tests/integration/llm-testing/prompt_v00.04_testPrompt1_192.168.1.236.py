@@ -8,8 +8,8 @@ VERSION = "v00.04"
 TIMESTAMP = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")  # Format: YYYY-MM-DD_HH-MM-SS
 
 # API Configuration
-API_ENDPOINT = "http://192.168.1.38:11434/api/generate"
-API_ENDPOINT = "http://192.168.1.221:11434/api/generate"
+#API_ENDPOINT = "http://192.168.1.38:11434/api/generate"
+API_ENDPOINT = "http://10.0.0.202:11434/api/generate"
 #MODEL_NAME = "llama3.1:70b"
 #MODEL_NAME = "llama3.3:latest"
 #MODEL_NAME = "llama3.2:3b"
