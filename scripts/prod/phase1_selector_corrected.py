@@ -19,7 +19,7 @@ from typing import Dict, Any, List, Optional, Tuple
 from datetime import datetime
 
 # Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from src.retrieval.opensearch_client import RealOpenSearchClient
 from src.utils.db import DatabaseClient

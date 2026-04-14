@@ -19,7 +19,7 @@ def test_corrected_selector_import():
     logger.info("Testing corrected selector import...")
     
     try:
-        from phase1_selector_corrected import Phase1CVESelectorCorrected
+        from scripts.prod.phase1_selector_corrected import Phase1CVESelectorCorrected
         logger.info("✓ Successfully imported Phase1CVESelectorCorrected")
         
         # Create instance

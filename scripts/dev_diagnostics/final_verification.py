@@ -22,7 +22,7 @@ def verify_corrected_selector():
     logger.info("Verifying corrected selector policy...")
     
     try:
-        from phase1_selector_corrected import Phase1CVESelectorCorrected
+        from scripts.prod.phase1_selector_corrected import Phase1CVESelectorCorrected
         
         selector = Phase1CVESelectorCorrected()
         results = selector.run_selection_corrected(limit=100)
