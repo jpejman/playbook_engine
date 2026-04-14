@@ -1,36 +1,30 @@
 # Python
-.venv/
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-.Python
-*.so
+.venv/
 
-# Environment variables
-.env
-.env.*
-
-# Directories
+# Logs / runtime
 logs/
-data/
+*.log
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
+# Env
+.env
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Build artifacts
-dist/
-build/
-*.egg-info/
+# VSCode
+.vscode/
 
-# Testing
-.coverage
-htmlcov/
-.pytest_cache/
+# Temp
+*.tmp
+*.bak
+
+# Data artifacts
+outputs/
+artifacts/
+.kilo/
+nul

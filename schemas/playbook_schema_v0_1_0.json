@@ -1,0 +1,345 @@
+{
+  "$schema": "http://json-schema.org/draft-2020-12/schema",
+  "$id": "https://vulnstrike.ai/schemas/playbook/v0.1.0.json",
+  "title": "Canonical Playbook Schema",
+  "description": "Schema for security remediation playbooks based on analysis of real playbooks",
+  "type": "object",
+  "required": ["header", "pre_remediation_checks", "workflows"],
+  "properties": {
+    "header": {
+      "type": "object",
+      "required": ["title", "cve_id", "severity"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Playbook title including CVE ID",
+          "pattern": ".*CVE-\\d{4}-\\d+.*"
+        },
+        "cve_id": {
+          "type": "string",
+          "description": "CVE identifier",
+          "pattern": "CVE-\\d{4}-\\d+"
+        },
+        "vendor": {
+          "type": "string",
+          "description": "Vendor name"
+        },
+        "product": {
+          "type": "string",
+          "description": "Product name"
+        },
+        "severity": {
+          "type": "string",
+          "description": "Vulnerability severity",
+          "enum": ["Critical", "High", "Medium", "Low"]
+        },
+        "vulnerability_type": {
+          "type": "string",
+          "description": "Type of vulnerability"
+        },
+        "description": {
+          "type": "string",
+          "description": "Brief description of the vulnerability"
+        },
+        "affected_versions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of affected versions"
+        },
+        "fixed_versions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of fixed versions"
+        },
+        "affected_platforms": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["Linux", "Windows", "macOS", "Android", "iOS"]
+          },
+          "description": "List of affected platforms"
+        },
+        "references": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of reference URLs"
+        }
+      }
+    },
+    "pre_remediation_checks": {
+      "type": "object",
+      "required": ["required_checks"],
+      "properties": {
+        "required_checks": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["check_id", "description"],
+            "properties": {
+              "check_id": {
+                "type": "string",
+                "pattern": "^check_\\d+$"
+              },
+              "description": {
+                "type": "string"
+              },
+              "commands": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "expected_result": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "backup_steps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["step_id", "description"],
+            "properties": {
+              "step_id": {
+                "type": "string",
+                "pattern": "^backup_\\d+$"
+              },
+              "description": {
+                "type": "string"
+              },
+              "commands": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "verification": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "prerequisites": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "workflows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["workflow_id", "workflow_name", "steps"],
+        "properties": {
+          "workflow_id": {
+            "type": "string",
+            "pattern": "^workflow_\\d+$"
+          },
+          "workflow_name": {
+            "type": "string"
+          },
+          "workflow_type": {
+            "type": "string",
+            "enum": ["repository_update", "manual_install", "configuration_hardening", "network_isolation", "other"]
+          },
+          "applicability_conditions": {
+            "type": "object",
+            "properties": {
+              "os_family": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": ["Linux", "Windows", "macOS"]
+                }
+              },
+              "package_managers": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": ["apt", "yum", "pip", "npm", "docker", "other"]
+                }
+              },
+              "environments": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": ["production", "staging", "development", "test"]
+                }
+              }
+            }
+          },
+          "prerequisites": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "steps": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["step_number", "title", "description", "commands"],
+              "properties": {
+                "step_number": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "title": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "commands": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "target_os_or_platform": {
+                  "type": "string"
+                },
+                "expected_result": {
+                  "type": "string"
+                },
+                "verification": {
+                  "type": "string"
+                },
+                "rollback_hint": {
+                  "type": "string"
+                },
+                "evidence_based": {
+                  "type": "boolean",
+                  "default": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "post_remediation_validation": {
+      "type": "object",
+      "properties": {
+        "validation_steps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["step_id", "description"],
+            "properties": {
+              "step_id": {
+                "type": "string",
+                "pattern": "^validation_\\d+$"
+              },
+              "description": {
+                "type": "string"
+              },
+              "commands": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "expected_outcomes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "testing_procedures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["test_id", "description"],
+            "properties": {
+              "test_id": {
+                "type": "string",
+                "pattern": "^test_\\d+$"
+              },
+              "description": {
+                "type": "string"
+              },
+              "commands": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "pass_criteria": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "additional_recommendations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["recommendation_id", "category", "description"],
+        "properties": {
+          "recommendation_id": {
+            "type": "string",
+            "pattern": "^rec_\\d+$"
+          },
+          "category": {
+            "type": "string",
+            "enum": ["security_hardening", "monitoring", "backup", "documentation", "other"]
+          },
+          "description": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string",
+            "enum": ["high", "medium", "low"]
+          },
+          "implementation_guidance": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "retrieval_metadata": {
+      "type": "object",
+      "required": ["decision", "evidence_count"],
+      "properties": {
+        "decision": {
+          "type": "string",
+          "enum": ["strong", "weak", "none"]
+        },
+        "evidence_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "source_indexes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "generation_timestamp": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}
