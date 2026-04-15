@@ -2,17 +2,15 @@
 """
 VS.ai — Playbook Engine Gen-3
 Phase 1 Selector with Corrected Exclusion Policy
-Version: v1.0.2
-Timestamp (UTC): 2026-04-14
+Version: v1.0.0
+Timestamp (UTC): 2026-04-13
 
 Purpose:
 - Implement corrected Phase 1 exclusion policy per directive
-- Exclude CVEs that already exist in the real production playbook store: vulnstrike.public.playbooks
-- Exclude CVEs only if truly completed successfully or already present in production
+- A CVE must be excluded only if truly completed successfully
 - Do not exclude CVEs with failed or partial generation history
 """
 
-import os
 import sys
 import json
 import logging
@@ -20,10 +18,7 @@ from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple
 from datetime import datetime
 
-import psycopg2
-import psycopg2.extras
-
-# Add repo root to path for imports
+# Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from src.retrieval.opensearch_client import RealOpenSearchClient
@@ -35,56 +30,12 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 
-class ProductionDatabaseClient:
-    """
-    Lightweight read-only client for the vulnstrike database.
-
-    Purpose:
-    - Check whether a CVE already exists in the real production playbook store:
-      vulnstrike.public.playbooks
-
-    Notes:
-    - Uses the same host/port/user/password defaults as the main DB client
-    - Hard-codes database='vulnstrike'
-    """
-
-    def __init__(self):
-        self.host = os.getenv('DB_HOST', '10.0.0.110')
-        self.port = os.getenv('DB_PORT', '5432')
-        self.database = 'vulnstrike'
-        self.user = os.getenv('DB_USER', 'vulnstrike')
-        self.password = os.getenv('DB_PASSWORD', 'vulnstrike')
-
-        logger.info(f"Production DB client initialized for {self.host}:{self.port}/{self.database}")
-
-    def fetch_one(self, query: str, params: Optional[Tuple] = None) -> Optional[Dict[str, Any]]:
-        conn = psycopg2.connect(
-            host=self.host,
-            port=self.port,
-            database=self.database,
-            user=self.user,
-            password=self.password
-        )
-        try:
-            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-                cur.execute(query, params)
-                return cur.fetchone()
-        finally:
-            conn.close()
-
-
 class Phase1CVESelectorCorrected:
     """Phase 1 CVE selector with corrected exclusion policy."""
-
+    
     def __init__(self):
         self.opensearch_client = RealOpenSearchClient()
-
-        # Main pipeline/workflow DB
         self.db = DatabaseClient()
-
-        # Real production playbook DB
-        self.production_db = ProductionDatabaseClient()
-
         self.results = {
             "timestamp_utc": datetime_to_iso(get_utc_now()),
             "selected_cve": None,
@@ -94,7 +45,6 @@ class Phase1CVESelectorCorrected:
             "selection_reason": None,
             "error": None,
             "exclusion_counts": {
-                "excluded_already_in_production": 0,
                 "excluded_already_approved": 0,
                 "excluded_successful_generation_exists": 0,
                 "excluded_in_progress_queue": 0,
@@ -103,62 +53,68 @@ class Phase1CVESelectorCorrected:
                 "excluded_other": 0
             }
         }
-
+        
         logger.info("Phase1CVESelectorCorrected initialized")
-
+    
     def query_opensearch_cve_index(self, limit: int = 100) -> List[Dict[str, Any]]:
         """
         Query OpenSearch cve index for candidate CVEs with Phase 1 filters.
-
+        
         Args:
             limit: Maximum number of CVEs to return
-
+            
         Returns:
             List of CVE candidates with basic metadata
         """
         logger.info(f"Querying OpenSearch cve index for candidate CVEs (limit: {limit})...")
-
+        
         try:
+            # Query OpenSearch for CVEs from cve index with Phase 1 requirements
+            # We need to get CVEs with severity and CVSS score present
             query = {
                 "query": {
                     "bool": {
                         "must": [
-                            {"exists": {"field": "metrics"}},
-                            {"exists": {"field": "published"}}
+                            {"exists": {"field": "metrics"}},  # CVSS metrics must exist
+                            {"exists": {"field": "published"}}  # Published date must exist
                         ]
                     }
                 },
                 "sort": [
-                    {"published": {"order": "desc"}}
+                    {"published": {"order": "desc"}}  # Sort by published date descending
                 ],
                 "size": limit,
-                "_source": True
+                "_source": True  # Get all available source fields
             }
-
+            
+            # Execute search on 'cve' index
             response = self.opensearch_client.client.search(
                 index="cve",
                 body=query
             )
-
+            
             hits = response.get('hits', {}).get('hits', [])
-            candidates: List[Dict[str, Any]] = []
-
+            candidates = []
+            
             for hit in hits:
+                # CVE ID is the document _id in the 'cve' index
                 cve_id = hit.get('_id', '')
                 if not cve_id or not cve_id.startswith('CVE-'):
-                    continue
-
+                    continue  # Skip non-CVE documents
+                    
                 source = hit.get('_source', {})
+                # Extract data from the CVE document structure
                 cve_id_from_source = source.get('id', cve_id)
-
+                
+                # Extract description from descriptions array
                 description = ''
                 descriptions = source.get('descriptions', [])
                 if descriptions and len(descriptions) > 0:
                     description = descriptions[0].get('value', '')
-
+                
+                # Extract CVSS score from metrics
                 cvss_score = 0.0
                 metrics = source.get('metrics', {})
-
                 if 'cvssMetricV40' in metrics and metrics['cvssMetricV40']:
                     cvss_data = metrics['cvssMetricV40'][0].get('cvssData', {})
                     cvss_score = float(cvss_data.get('baseScore', 0.0))
@@ -171,7 +127,8 @@ class Phase1CVESelectorCorrected:
                 elif 'cvssMetricV2' in metrics and metrics['cvssMetricV2']:
                     cvss_data = metrics['cvssMetricV2'][0].get('cvssData', {})
                     cvss_score = float(cvss_data.get('baseScore', 0.0))
-
+                
+                # Extract severity from CVSS data or calculate from score
                 severity = 'UNKNOWN'
                 if cvss_score >= 9.0:
                     severity = 'CRITICAL'
@@ -181,15 +138,18 @@ class Phase1CVESelectorCorrected:
                     severity = 'MEDIUM'
                 elif cvss_score > 0:
                     severity = 'LOW'
-
+                
+                # Get published date
                 published = source.get('published', '')
-
+                
+                # Skip if no CVSS score (Phase 1 requirement: CVSS score present)
                 if cvss_score <= 0:
                     continue
-
+                
+                # Skip if no severity determined (Phase 1 requirement: severity present)
                 if severity == 'UNKNOWN':
                     continue
-
+                
                 candidate = {
                     "cve_id": cve_id_from_source,
                     "severity": severity,
@@ -201,147 +161,142 @@ class Phase1CVESelectorCorrected:
                     "index": hit.get('_index', 'cve'),
                     "source_fields": list(source.keys())
                 }
-
+                
+                # Truncate description if too long
                 if candidate['description'] and len(candidate['description']) > 200:
                     candidate['description'] = candidate['description'][:200] + "..."
-
+                
                 candidates.append(candidate)
-
+            
             logger.info(f"Found {len(candidates)} candidate CVEs from OpenSearch cve index with Phase 1 filters")
             return candidates
-
+            
         except Exception as e:
             logger.error(f"Failed to query OpenSearch cve index: {e}")
-            self.results["error"] = str(e)
             return []
-
+    
     def _check_postgresql_state_corrected(self, cve_id: str) -> Tuple[bool, List[str], str]:
         """
-        Check database state for a CVE with corrected Phase 1 filters.
-
-        Corrected filters:
-        1. Exclude if already exists in production table: vulnstrike.public.playbooks
-        2. Exclude if approved_playbook exists
-        3. Exclude if generation_run exists with terminal success:
-           - gr.status = completed
-           - gr.response has content
-           - qa.qa_result = approved
-        4. Exclude if active lock exists
-        5. Exclude if in-progress queue state exists
-        6. Exclude test/synthetic CVE IDs
-
-        Do NOT exclude solely because:
+        Check PostgreSQL state for a CVE with CORRECTED Phase 1 filters.
+        
+        CORRECTED Phase 1 filters (per directive):
+        A CVE must be excluded only if at least one of the following is true:
+        1. approved_playbook exists for that CVE
+        2. generation_run exists with true terminal success state:
+           - generation status completed
+           - parser succeeded (parsed_response IS NOT NULL)
+           - QA returned a valid success result (qa_result = 'approved')
+           - pipeline_status = success (if available)
+        3. active lock exists
+        4. in-progress queue state exists
+        5. already processed in current session
+        
+        A CVE must NOT be excluded solely because:
         - it exists in generation_runs
         - it has failed generation history
         - it has partial pipeline history
         - QA result was None
         - parser previously failed
+        
+        Returns:
+            Tuple of (is_eligible, list_of_filter_reasons, exclusion_category)
         """
-        filter_reasons: List[str] = []
-        exclusion_category: Optional[str] = None
-
-        # 1. HARD EXCLUDE — already exists in real production playbook store
-        exists_in_production = self.production_db.fetch_one(
-            """
-            SELECT EXISTS (
-                SELECT 1
-                FROM public.playbooks
-                WHERE cve_id = %s
-            ) AS exists_in_production
-            """,
-            (cve_id,)
-        )
-
-        if exists_in_production and exists_in_production.get("exists_in_production"):
-            filter_reasons.append("Already exists in production playbooks (vulnstrike.public.playbooks)")
-            exclusion_category = "excluded_already_in_production"
-            return False, filter_reasons, exclusion_category
-
-        # 2. Check if already has approved playbook in workflow DB
+        filter_reasons = []
+        exclusion_category = None
+        
+        # 1. Check if already has approved playbook
         has_approved = self.db.fetch_one(
             """
             SELECT EXISTS (
-                SELECT 1
+                SELECT 1 
                 FROM approved_playbooks ap
                 JOIN generation_runs gr ON ap.generation_run_id = gr.id
                 WHERE gr.cve_id = %s
-            ) AS has_approved
+            ) as has_approved
             """,
             (cve_id,)
         )
-
-        if has_approved and has_approved.get("has_approved"):
+        
+        if has_approved and has_approved.get('has_approved'):
             filter_reasons.append("Already has approved playbook")
             exclusion_category = "excluded_already_approved"
             return False, filter_reasons, exclusion_category
-
-        # 3. Check if has truly successful generation run
+        
+        # 2. Check if has truly successful generation run
+        # Based on actual schema and directive requirements:
+        # - generation status = 'completed'
+        # - response IS NOT NULL AND response != '' (has content)
+        # - has QA result = 'approved' (terminal success)
         has_successful_generation = self.db.fetch_one(
             """
             SELECT EXISTS (
-                SELECT 1
+                SELECT 1 
                 FROM generation_runs gr
                 LEFT JOIN qa_runs qa ON gr.id = qa.generation_run_id
                 WHERE gr.cve_id = %s
-                  AND gr.status = 'completed'
-                  AND gr.response IS NOT NULL
-                  AND btrim(gr.response) <> ''
-                  AND qa.qa_result = 'approved'
-            ) AS has_successful_generation
+                AND gr.status = 'completed'
+                AND gr.response IS NOT NULL
+                AND gr.response != ''
+                AND qa.qa_result = 'approved'
+            ) as has_successful_generation
             """,
             (cve_id,)
         )
-
-        if has_successful_generation and has_successful_generation.get("has_successful_generation"):
-            filter_reasons.append("Has truly successful generation run (completed + response + QA approved)")
+        
+        if has_successful_generation and has_successful_generation.get('has_successful_generation'):
+            filter_reasons.append("Has truly successful generation run (completed + parsed + QA approved)")
             exclusion_category = "excluded_successful_generation_exists"
             return False, filter_reasons, exclusion_category
-
-        # 4. Check if in-progress queue state exists
-        try:
-            in_progress_queue = self.db.fetch_one(
-                """
-                SELECT EXISTS (
-                    SELECT 1
-                    FROM cve_queue
-                    WHERE cve_id = %s
-                      AND status IN ('processing', 'pending')
-                ) AS in_progress_queue
-                """,
-                (cve_id,)
-            )
-
-            if in_progress_queue and in_progress_queue.get("in_progress_queue"):
-                filter_reasons.append("In-progress queue state exists")
-                exclusion_category = "excluded_in_progress_queue"
-                return False, filter_reasons, exclusion_category
-        except Exception as e:
-            logger.debug(f"Could not check cve_queue for {cve_id}: {e}")
-
-        # 5. Check if active lock exists
+        
+        # 3. Check if in-progress queue state exists
+        in_progress_queue = self.db.fetch_one(
+            """
+            SELECT EXISTS (
+                SELECT 1 
+                FROM cve_queue 
+                WHERE cve_id = %s
+                AND status IN ('processing', 'pending')
+            ) as in_progress_queue
+            """,
+            (cve_id,)
+        )
+        
+        if in_progress_queue and in_progress_queue.get('in_progress_queue'):
+            filter_reasons.append("In-progress queue state exists")
+            exclusion_category = "excluded_in_progress_queue"
+            return False, filter_reasons, exclusion_category
+        
+        # 4. Check if active lock exists
+        # Note: This assumes continuous_execution_locks table exists
+        # If not, we'll skip this check
         try:
             has_active_lock = self.db.fetch_one(
                 """
                 SELECT EXISTS (
-                    SELECT 1
-                    FROM continuous_execution_locks
+                    SELECT 1 
+                    FROM continuous_execution_locks 
                     WHERE cve_id = %s
-                      AND status = 'running'
-                      AND lock_released_at IS NULL
-                      AND lock_acquired_at > NOW() - INTERVAL '5 minutes'
-                ) AS has_active_lock
+                    AND status = 'running' 
+                    AND lock_released_at IS NULL
+                    AND lock_acquired_at > NOW() - INTERVAL '5 minutes'
+                ) as has_active_lock
                 """,
                 (cve_id,)
             )
-
-            if has_active_lock and has_active_lock.get("has_active_lock"):
+            
+            if has_active_lock and has_active_lock.get('has_active_lock'):
                 filter_reasons.append("Active lock exists")
                 exclusion_category = "excluded_active_lock"
                 return False, filter_reasons, exclusion_category
         except Exception as e:
-            logger.debug(f"Could not check active locks for {cve_id}: {e}")
-
-        # 6. Exclude test/synthetic CVE patterns
+            # Table might not exist, skip this check
+            logger.debug(f"Could not check active locks (table might not exist): {e}")
+            pass
+        
+        # 5. Session deduplication would be handled at a higher level
+        # This is not a database check, so we'll handle it separately
+        
+        # 6. Check if test/excluded CVE pattern
         is_test = (
             cve_id.startswith('CVE-TEST-') or
             cve_id.startswith('TEST-') or
@@ -349,48 +304,57 @@ class Phase1CVESelectorCorrected:
             cve_id.startswith('SYNTHETIC-') or
             cve_id.startswith('SEEDED-')
         )
-
+        
         if is_test:
             filter_reasons.append("Test/excluded CVE pattern")
             exclusion_category = "excluded_other"
             return False, filter_reasons, exclusion_category
-
-        filter_reasons.append("Passed all corrected Phase 1 database filters")
+        
+        # If we get here, CVE is eligible for Phase 1
+        if not filter_reasons:
+            filter_reasons.append("Passed all corrected Phase 1 PostgreSQL filters")
+        
         return True, filter_reasons, "eligible"
-
-    def filter_against_postgresql_corrected(
-        self,
-        candidates: List[Dict[str, Any]]
-    ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+    
+    def filter_against_postgresql_corrected(self, candidates: List[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
         """
-        Filter candidates against database state with corrected Phase 1 filters.
+        Filter candidates against PostgreSQL state with CORRECTED Phase 1 filters.
+        
+        Args:
+            candidates: List of CVE candidates from OpenSearch
+            
+        Returns:
+            Tuple of (eligible_candidates, filtered_out_candidates)
         """
         logger.info(f"Filtering {len(candidates)} candidates against PostgreSQL state with CORRECTED Phase 1 filters...")
-
-        eligible: List[Dict[str, Any]] = []
-        filtered_out: List[Dict[str, Any]] = []
-
+        
+        eligible = []
+        filtered_out = []
+        
         for candidate in candidates:
-            cve_id = candidate["cve_id"]
-
+            cve_id = candidate['cve_id']
+            
+            # Check PostgreSQL state with CORRECTED filters
             is_eligible, filter_reasons, exclusion_category = self._check_postgresql_state_corrected(cve_id)
-
+            
             if is_eligible:
-                candidate["filter_reasons"] = filter_reasons
-                candidate["exclusion_category"] = None
+                candidate['filter_reasons'] = filter_reasons
+                candidate['exclusion_category'] = None
                 eligible.append(candidate)
             else:
-                candidate["filter_reasons"] = filter_reasons
-                candidate["exclusion_category"] = exclusion_category
+                candidate['filter_reasons'] = filter_reasons
+                candidate['exclusion_category'] = exclusion_category
                 filtered_out.append(candidate)
-
-                if exclusion_category and exclusion_category in self.results["exclusion_counts"]:
-                    self.results["exclusion_counts"][exclusion_category] += 1
-
+                
+                # Update exclusion counts
+                if exclusion_category and exclusion_category in self.results['exclusion_counts']:
+                    self.results['exclusion_counts'][exclusion_category] += 1
+        
         logger.info(f"After CORRECTED PostgreSQL filtering: {len(eligible)} eligible, {len(filtered_out)} filtered out")
         return eligible, filtered_out
-
+    
     def _severity_to_numeric(self, severity: str) -> int:
+        """Convert severity string to numeric value for sorting."""
         severity_map = {
             'CRITICAL': 4,
             'HIGH': 3,
@@ -399,37 +363,40 @@ class Phase1CVESelectorCorrected:
             'UNKNOWN': 0
         }
         return severity_map.get(severity.upper(), 0)
-
+    
     def select_fresh_cve_phase1(self, eligible_candidates: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
         """
         Select one fresh CVE from eligible candidates using Phase 1 sorting.
-
-        Sorting:
+        
+        Phase 1 sorting:
         1. severity descending
         2. CVSS descending
         3. published descending
+        
+        Args:
+            eligible_candidates: List of eligible CVE candidates
+            
+        Returns:
+            Selected CVE or None if no candidates
         """
         if not eligible_candidates:
             logger.warning("No eligible candidates to select from")
             return None
-
+        
+        # Sort candidates by Phase 1 criteria
         sorted_candidates = sorted(
             eligible_candidates,
             key=lambda x: (
-                -self._severity_to_numeric(x.get('severity', 'UNKNOWN')),
-                -float(x.get('cvss_score', 0.0) or 0.0),
-                -(datetime.fromisoformat(x.get('published', '1970-01-01T00:00:00Z').replace('Z', '+00:00')).timestamp() if x.get('published') else 0)
+                -self._severity_to_numeric(x.get('severity', 'UNKNOWN')),  # Severity descending
+                -float(x.get('cvss_score', 0.0) or 0.0),  # CVSS descending
+                -(datetime.fromisoformat(x.get('published', '1970-01-01T00:00:00Z').replace('Z', '+00:00')).timestamp() if x.get('published') else 0)  # Published descending
             )
         )
-
+        
         selected = sorted_candidates[0]
-        logger.info(
-            f"Selected CVE: {selected['cve_id']} "
-            f"(Severity: {selected.get('severity', 'N/A')}, "
-            f"CVSS: {selected.get('cvss_score', 0.0)}, "
-            f"Published: {selected.get('published', 'N/A')})"
-        )
-
+        logger.info(f"Selected CVE: {selected['cve_id']} (Severity: {selected.get('severity', 'N/A')}, CVSS: {selected.get('cvss_score', 0.0)}, Published: {selected.get('published', 'N/A')})")
+        
+        # Build selection reason
         severity = selected.get('severity', 'UNKNOWN')
         cvss_score = selected.get('cvss_score', 0.0) or 0.0
         published = selected.get('published', 'N/A')
@@ -438,160 +405,185 @@ class Phase1CVESelectorCorrected:
             f"CVSS score: {cvss_score}",
             f"Published date: {published}"
         ]
-
-        selected["selection_reason"] = selection_reason
+        
+        selected['selection_reason'] = selection_reason
         return selected
-
+    
     def run_selection_corrected(self, limit: int = 100) -> Dict[str, Any]:
         """
-        Run complete corrected Phase 1 selection process.
+        Run complete CORRECTED Phase 1 selection process.
+        
+        Args:
+            limit: Maximum number of CVEs to query from OpenSearch
+            
+        Returns:
+            Selection results with corrected exclusion counts
         """
         logger.info("Starting CORRECTED Phase 1 CVE selection...")
-
+        
+        # Step 1: Query OpenSearch cve index with Phase 1 filters
         candidates = self.query_opensearch_cve_index(limit)
-        self.results["number_of_candidates_returned_from_opensearch"] = len(candidates)
-        self.results["candidates_from_opensearch"] = candidates
-
-        self.results["candidates_fetched"] = len(candidates)
-        self.results["candidates_considered"] = len(candidates)
-
+        self.results['number_of_candidates_returned_from_opensearch'] = len(candidates)
+        self.results['candidates_from_opensearch'] = candidates
+        
+        # Add backward compatibility fields
+        self.results['candidates_fetched'] = len(candidates)
+        self.results['candidates_considered'] = len(candidates)
+        
         if not candidates:
             logger.error("No candidates returned from OpenSearch cve index")
             return self.results
-
+        
+        # Step 2: Filter against PostgreSQL with CORRECTED filters
         eligible_candidates, filtered_candidates = self.filter_against_postgresql_corrected(candidates)
-        self.results["number_filtered_out_by_postgres"] = len(filtered_candidates)
-        self.results["filtered_candidates"] = filtered_candidates
-        self.results["eligible_candidates"] = eligible_candidates
-
-        self.results["filtered_out"] = len(filtered_candidates)
-        self.results["candidates_filtered"] = len(filtered_candidates)
-        self.results["eligible_count"] = len(eligible_candidates)
-
+        self.results['number_filtered_out_by_postgres'] = len(filtered_candidates)
+        self.results['filtered_candidates'] = filtered_candidates
+        self.results['eligible_candidates'] = eligible_candidates
+        
+        # Add backward compatibility fields
+        self.results['filtered_out'] = len(filtered_candidates)
+        self.results['candidates_filtered'] = len(filtered_candidates)
+        self.results['eligible_count'] = len(eligible_candidates)
+        
+        # Step 3: Select fresh CVE
         selected_cve = self.select_fresh_cve_phase1(eligible_candidates)
-
+        
         if selected_cve:
-            self.results["selected_cve"] = selected_cve["cve_id"]
-            self.results["reason_selected"] = selected_cve.get("selection_reason", [])
+            self.results['selected_cve'] = selected_cve['cve_id']
+            self.results['reason_selected'] = selected_cve.get('selection_reason', [])
             logger.info(f"Successfully selected CVE: {selected_cve['cve_id']}")
         else:
             logger.warning("No CVE selected from eligible candidates")
-
+        
         return self.results
-
+    
     def print_results(self, output_json: bool = False):
+        """Print selection results."""
         if output_json:
             print(json.dumps(self.results, indent=2, default=str))
             return
-
+        
         print("\n" + "=" * 80)
         print("CORRECTED PHASE 1 CVE SELECTION RESULTS")
         print("=" * 80)
         print(f"Timestamp (UTC): {self.results['timestamp_utc']}")
-        print(f"Candidates from OpenSearch: {self.results.get('number_of_candidates_returned_from_opensearch', 0)}")
-        print(f"Filtered out by PostgreSQL: {self.results.get('number_filtered_out_by_postgres', 0)}")
-        print(f"Eligible candidates: {len(self.results.get('eligible_candidates', []))}")
-
+        print(f"Candidates from OpenSearch: {self.results['number_of_candidates_returned_from_opensearch']}")
+        print(f"Filtered out by PostgreSQL: {self.results['number_filtered_out_by_postgres']}")
+        print(f"Eligible candidates: {len(self.results['eligible_candidates'])}")
+        
         print("\nEXCLUSION COUNTS (Corrected Policy):")
         print("-" * 40)
-        for category, count in self.results["exclusion_counts"].items():
+        for category, count in self.results['exclusion_counts'].items():
             print(f"  {category}: {count}")
-
-        if self.results["selected_cve"]:
+        
+        if self.results['selected_cve']:
             print(f"\nSELECTED CVE: {self.results['selected_cve']}")
             print("-" * 40)
             print("Selection Reasons:")
-            for reason in self.results.get("reason_selected", []):
+            for reason in self.results['reason_selected']:
                 print(f"  • {reason}")
         else:
             print("\nNO CVE SELECTED")
-
-        if self.results.get("filtered_candidates"):
-            print("\nTop 5 Filtered Out Candidates (with corrected exclusion categories):")
-            for i, candidate in enumerate(self.results["filtered_candidates"][:5], 1):
-                reasons = candidate.get("filter_reasons", ["Unknown"])
-                category = candidate.get("exclusion_category", "unknown")
+        
+        # Show top filtered candidates if any
+        if self.results['filtered_candidates']:
+            print(f"\nTop 5 Filtered Out Candidates (with corrected exclusion categories):")
+            for i, candidate in enumerate(self.results['filtered_candidates'][:5], 1):
+                reasons = candidate.get('filter_reasons', ['Unknown'])
+                category = candidate.get('exclusion_category', 'unknown')
                 print(f"  {i}. {candidate['cve_id']}: {category} - {', '.join(reasons)}")
-
+        
         print("=" * 80)
 
 
 def test_against_recent_candidates():
     """Test the corrected selector against the recent 100-candidate set."""
     logger.info("Testing corrected selector against recent 100-candidate set...")
-
+    
+    # Load the recent metadata
     metadata_path = Path("logs/runs/556732eb-e36e-4371-8f5b-a1dc78c53343-run-0010/metadata.json")
     if not metadata_path.exists():
         logger.error(f"Metadata file not found: {metadata_path}")
         return None
-
+    
     with open(metadata_path, 'r') as f:
         metadata = json.load(f)
-
-    selection_data = metadata.get("metadata", {}).get("selection_data", {})
-    candidates = selection_data.get("candidates_from_opensearch", [])
-
+    
+    selection_data = metadata.get('metadata', {}).get('selection_data', {})
+    candidates = selection_data.get('candidates_from_opensearch', [])
+    
     if not candidates:
         logger.error("No candidates found in metadata")
         return None
-
+    
     logger.info(f"Loaded {len(candidates)} candidates from recent run")
-
+    
+    # Create corrected selector
     selector = Phase1CVESelectorCorrected()
+    
+    # Simulate filtering with corrected logic
     eligible, filtered = selector.filter_against_postgresql_corrected(candidates)
-
+    
+    # Build comparison results
     comparison = {
-        "original_run_timestamp": metadata.get("captured_at"),
+        "original_run_timestamp": metadata.get('captured_at'),
         "original_candidates_count": len(candidates),
+        "original_filtered_count": len(candidates) - 1,  # Based on previous analysis
+        "original_eligible_count": 1,  # Based on previous analysis
         "corrected_filtered_count": len(filtered),
         "corrected_eligible_count": len(eligible),
-        "exclusion_counts": selector.results["exclusion_counts"],
+        "exclusion_counts": selector.results['exclusion_counts'],
         "top_eligible_candidates": [
             {
-                "cve_id": c.get("cve_id"),
-                "severity": c.get("severity"),
-                "cvss_score": c.get("cvss_score"),
-                "published": c.get("published")
+                "cve_id": c.get('cve_id'),
+                "severity": c.get('severity'),
+                "cvss_score": c.get('cvss_score'),
+                "published": c.get('published')
             }
             for c in eligible[:10]
         ],
         "top_filtered_candidates": [
             {
-                "cve_id": c.get("cve_id"),
-                "exclusion_category": c.get("exclusion_category"),
-                "filter_reasons": c.get("filter_reasons", [])
+                "cve_id": c.get('cve_id'),
+                "exclusion_category": c.get('exclusion_category'),
+                "filter_reasons": c.get('filter_reasons', [])
             }
             for c in filtered[:10]
         ]
     }
-
+    
     return comparison
 
 
 def main():
+    """Main execution function."""
     import argparse
-
+    
     parser = argparse.ArgumentParser(description='Phase 1 CVE selector with corrected exclusion policy')
     parser.add_argument('--limit', type=int, default=100, help='Maximum CVEs to query from OpenSearch (default: 100)')
     parser.add_argument('--json', action='store_true', help='Output JSON format only')
     parser.add_argument('--test', action='store_true', help='Test against recent 100-candidate set only')
     parser.add_argument('--verbose', action='store_true', help='Enable verbose logging')
-
+    
     args = parser.parse_args()
-
+    
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
-
+    
     if args.test:
+        # Test against recent candidates
         comparison = test_against_recent_candidates()
         if comparison:
             print(json.dumps(comparison, indent=2, default=str))
         else:
             print("Test failed")
         return
-
+    
+    # Run selection with corrected logic
     selector = Phase1CVESelectorCorrected()
-    selector.run_selection_corrected(args.limit)
+    results = selector.run_selection_corrected(args.limit)
+    
+    # Print results
     selector.print_results(args.json)
 
 
