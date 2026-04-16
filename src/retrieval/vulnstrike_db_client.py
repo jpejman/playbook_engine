@@ -255,32 +255,55 @@ class VulnstrikeDBClient:
             return []
     
     def _search_table_for_cve(self, table_name: str, cve_id: str) -> List[Dict[str, Any]]:
-        """Search a specific table for CVE records."""
+        """Search a specific table for CVE records with safe ILIKE usage."""
+        import time
         try:
+            table_search_start = time.time()
+            
             with self._create_connection() as conn:
                 with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-                    # First, get column names to build query
+                    # Get column names and data types to build safe query
                     cur.execute("""
-                        SELECT column_name 
+                        SELECT column_name, data_type 
                         FROM information_schema.columns 
                         WHERE table_schema = 'public' 
                           AND table_name = %s
                         ORDER BY ordinal_position
                     """, (table_name,))
                     
-                    columns = [row['column_name'] for row in cur.fetchall()]
+                    columns_info = cur.fetchall()
                     
-                    # Build WHERE clause for CVE search
+                    # Build WHERE clause for CVE search with safe ILIKE usage
                     where_clauses = []
                     params = []
                     
-                    for column in columns:
-                        if 'cve' in column.lower():
-                            where_clauses.append(f"{column} = %s")
+                    for column_info in columns_info:
+                        column_name = column_info['column_name']
+                        data_type = column_info['data_type']
+                        column_lower = column_name.lower()
+                        
+                        # Priority 1: Exact match on CVE columns
+                        if 'cve' in column_lower:
+                            where_clauses.append(f"{column_name} = %s")
                             params.append(cve_id)
-                        elif column.lower() in ['id', 'name', 'title', 'description']:
-                            where_clauses.append(f"{column} ILIKE %s")
-                            params.append(f"%{cve_id}%")
+                        
+                        # Priority 2: Safe text search on text columns
+                        elif column_lower in ['name', 'title', 'description']:
+                            # Only use ILIKE on text-based columns
+                            if data_type in ('text', 'character varying', 'varchar', 'char', 'character'):
+                                where_clauses.append(f"{column_name} ILIKE %s")
+                                params.append(f"%{cve_id}%")
+                        
+                        # Priority 3: ID column with safe casting
+                        elif column_lower == 'id':
+                            # For ID columns, cast to text if not already text
+                            if data_type in ('text', 'character varying', 'varchar', 'char', 'character'):
+                                where_clauses.append(f"{column_name} ILIKE %s")
+                                params.append(f"%{cve_id}%")
+                            else:
+                                # Cast non-text ID columns to text for safe ILIKE
+                                where_clauses.append(f"CAST({column_name} AS TEXT) ILIKE %s")
+                                params.append(f"%{cve_id}%")
                     
                     if not where_clauses:
                         # No CVE-related columns found, skip this table
@@ -289,13 +312,21 @@ class VulnstrikeDBClient:
                     where_sql = " OR ".join(where_clauses)
                     query = f"SELECT * FROM {table_name} WHERE {where_sql} LIMIT 10"
                     
-                    cur.execute(query, params)
-                    records = cur.fetchall()
-                    
-                    return [dict(record) for record in records]
+                    try:
+                        cur.execute(query, params)
+                        records = cur.fetchall()
+                        table_search_time = time.time() - table_search_start
+                        logger.debug(f"Table {table_name} search completed in {table_search_time:.3f}s")
+                        return [dict(record) for record in records]
+                    except Exception as query_error:
+                        # Log at debug level to avoid warning spam
+                        table_search_time = time.time() - table_search_start
+                        logger.debug(f"Query failed for table {table_name} in {table_search_time:.3f}s: {query_error}")
+                        return []
                     
         except Exception as e:
-            logger.warning(f"Failed to search table {table_name}: {e}")
+            # Log at debug level to avoid warning spam
+            logger.debug(f"Failed to search table {table_name}: {e}")
             return []
     
     def _search_broad(self, cve_id: str) -> List[Dict[str, Any]]:
@@ -327,11 +358,11 @@ class VulnstrikeDBClient:
                     with self._create_connection() as conn:
                         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
                             cur.execute("""
-                                SELECT column_name 
+                                SELECT column_name, data_type 
                                 FROM information_schema.columns 
                                 WHERE table_schema = 'public' 
                                   AND table_name = %s
-                                  AND data_type IN ('text', 'varchar', 'character varying')
+                                  AND data_type IN ('text', 'character varying', 'varchar', 'char', 'character')
                                 ORDER BY ordinal_position
                             """, (table_name,))
                             
@@ -350,12 +381,17 @@ class VulnstrikeDBClient:
                         query = f"SELECT * FROM {table_name} WHERE {where_sql} LIMIT 5"
                         
                         query_start = time.time()
-                        with self._create_connection() as conn:
-                            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-                                cur.execute(query, params)
-                                records = cur.fetchall()
-                        query_time = time.time() - query_start
-                        broad_timing['query_execution_time_seconds'] += query_time
+                        try:
+                            with self._create_connection() as conn:
+                                with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                                    cur.execute(query, params)
+                                    records = cur.fetchall()
+                            query_time = time.time() - query_start
+                            broad_timing['query_execution_time_seconds'] += query_time
+                        except Exception as query_error:
+                            # Log at debug level to avoid warning spam
+                            logger.debug(f"Broad search query failed for table {table_name}: {query_error}")
+                            continue
                         
                         normalization_start = time.time()
                         for record in records:
