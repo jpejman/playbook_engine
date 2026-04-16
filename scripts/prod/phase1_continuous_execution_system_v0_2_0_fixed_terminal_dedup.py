@@ -415,24 +415,25 @@ class Phase1ContinuousExecutionSystem:
         return f"{self.session_id}-run-{self.run_counter:04d}"
 
     def _has_terminal_success(self, cve_id: str) -> bool:
-        try:
-            sql = """
-            SELECT EXISTS (
-                SELECT 1
-                FROM generation_runs gr
-                LEFT JOIN qa_runs qa ON gr.id = qa.generation_run_id
-                WHERE gr.cve_id = %s
-                  AND gr.status = 'completed'
-                  AND gr.response IS NOT NULL
-                  AND btrim(gr.response) <> ''
-                  AND qa.qa_result = 'approved'
-            ) AS has_terminal_success
+        """
+        Treat a CVE as terminal for selection if playbook_engine already contains
+        a non-empty generated playbook in generation_runs, regardless of QA state.
+        QA is downstream only and must not gate reselection.
+        """
+        row = self.db.fetch_one(
             """
-            result = self.db.fetch_one(sql, (cve_id,))
-            return bool(result and result.get("has_terminal_success"))
-        except Exception as e:
-            logger.error(f"Terminal success check failed for {cve_id}: {e}")
-            return False
+            SELECT 1
+            FROM generation_runs gr
+            WHERE gr.cve_id = %s
+            AND gr.status = 'completed'
+            AND gr.response IS NOT NULL
+            AND btrim(gr.response) <> ''
+            LIMIT 1
+            """,
+            (cve_id,),
+        )
+
+        return row is not None
 
     def _normalize_candidate_ids(self, selection_results: Dict[str, Any]) -> List[str]:
         candidates = selection_results.get("eligible_candidates", []) or []

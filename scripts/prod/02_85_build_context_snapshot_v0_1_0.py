@@ -573,21 +573,51 @@ def main():
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
     
-    # Run builder
-    builder = ContextSnapshotBuilder()
-    results = builder.build_context_snapshot(args.cve)
-    
-    if args.json:
-        # Output JSON only
-        print(json.dumps(results, indent=2))
-    else:
-        # Print summary
-        builder.print_summary()
-    
-    # Exit code based on readiness status
-    if results['readiness_status'] in ['ready', 'auto_built']:
-        sys.exit(0)
-    else:
+    try:
+        # Run builder
+        builder = ContextSnapshotBuilder()
+        results = builder.build_context_snapshot(args.cve)
+        
+        if args.json:
+            # Output JSON only
+            print(json.dumps(results, indent=2))
+        else:
+            # Print summary
+            builder.print_summary()
+        
+        # Always output final JSON contract as last line for pipeline consumption
+        cve_id = results.get('cve_id', args.cve)
+        context_snapshot_id = results.get('context_snapshot_id')
+        readiness_status = results.get('readiness_status')
+        
+        if readiness_status in ['ready', 'auto_built']:
+            final_json = {
+                "context_snapshot_id": context_snapshot_id,
+                "cve_id": cve_id,
+                "status": "success"
+            }
+            exit_code = 0
+        else:
+            final_json = {
+                "context_snapshot_id": None,
+                "cve_id": cve_id,
+                "status": "failed",
+                "error": results.get('error', 'Unknown error')
+            }
+            exit_code = 1
+        
+        print(json.dumps(final_json))
+        sys.exit(exit_code)
+        
+    except Exception as e:
+        # Handle any unexpected exceptions
+        error_json = {
+            "context_snapshot_id": None,
+            "cve_id": args.cve,
+            "status": "failed",
+            "error": str(e)
+        }
+        print(json.dumps(error_json))
         sys.exit(1)
 
 

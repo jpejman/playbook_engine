@@ -106,6 +106,25 @@ class Phase1CVESelectorCorrected:
 
         logger.info("Phase1CVESelectorCorrected initialized")
 
+    def _has_existing_generated_playbook(self, cve_id: str) -> bool:
+        """
+        Return True if playbook_engine already has a non-empty generated playbook
+        for this CVE, regardless of QA state.
+        """
+        row = self.db.fetch_one(
+            """
+            SELECT 1
+            FROM generation_runs gr
+            WHERE gr.cve_id = %s
+              AND gr.status = 'completed'
+              AND gr.response IS NOT NULL
+              AND btrim(gr.response) <> ''
+            LIMIT 1
+            """,
+            (cve_id,),
+        )
+        return row is not None
+
     def query_opensearch_cve_index(self, limit: int = 100) -> List[Dict[str, Any]]:
         """
         Query OpenSearch cve index for candidate CVEs with Phase 1 filters.
@@ -215,6 +234,103 @@ class Phase1CVESelectorCorrected:
             self.results["error"] = str(e)
             return []
 
+    def query_opensearch_cve_index_paged(self, size: int = 100, offset: int = 0) -> List[Dict[str, Any]]:
+        """
+        Query OpenSearch cve index for one page of candidate CVEs.
+        """
+        logger.info(f"Querying OpenSearch cve index for candidate CVEs (size: {size}, offset: {offset}).")
+
+        try:
+            query = {
+                "query": {
+                    "bool": {
+                        "must": [
+                            {"exists": {"field": "metrics"}},
+                            {"exists": {"field": "published"}}
+                        ]
+                    }
+                },
+                "sort": [
+                    {"published": {"order": "desc"}}
+                ],
+                "from": offset,
+                "size": size,
+                "_source": True
+            }
+
+            response = self.opensearch_client.client.search(
+                index="cve",
+                body=query
+            )
+
+            hits = response.get("hits", {}).get("hits", [])
+            candidates = []
+
+            for hit in hits:
+                cve_id = hit.get("_id", "")
+                if not cve_id or not cve_id.startswith("CVE-"):
+                    continue
+
+                source = hit.get("_source", {})
+                cve_id_from_source = source.get("id", cve_id)
+
+                description = ""
+                descriptions = source.get("descriptions", [])
+                if descriptions and len(descriptions) > 0:
+                    description = descriptions[0].get("value", "")
+
+                cvss_score = 0.0
+                metrics = source.get("metrics", {})
+                if "cvssMetricV40" in metrics and metrics["cvssMetricV40"]:
+                    cvss_data = metrics["cvssMetricV40"][0].get("cvssData", {})
+                    cvss_score = float(cvss_data.get("baseScore", 0.0))
+                elif "cvssMetricV31" in metrics and metrics["cvssMetricV31"]:
+                    cvss_data = metrics["cvssMetricV31"][0].get("cvssData", {})
+                    cvss_score = float(cvss_data.get("baseScore", 0.0))
+                elif "cvssMetricV30" in metrics and metrics["cvssMetricV30"]:
+                    cvss_data = metrics["cvssMetricV30"][0].get("cvssData", {})
+                    cvss_score = float(cvss_data.get("baseScore", 0.0))
+                elif "cvssMetricV2" in metrics and metrics["cvssMetricV2"]:
+                    cvss_data = metrics["cvssMetricV2"][0].get("cvssData", {})
+                    cvss_score = float(cvss_data.get("baseScore", 0.0))
+
+                severity = "UNKNOWN"
+                if cvss_score >= 9.0:
+                    severity = "CRITICAL"
+                elif cvss_score >= 7.0:
+                    severity = "HIGH"
+                elif cvss_score >= 4.0:
+                    severity = "MEDIUM"
+                elif cvss_score > 0:
+                    severity = "LOW"
+
+                published = source.get("published", "")
+
+                if cvss_score <= 0:
+                    continue
+
+                if severity == "UNKNOWN":
+                    continue
+
+                candidate = {
+                    "cve_id": cve_id_from_source,
+                    "description": description[:200] + "." if description and len(description) > 200 else description,
+                    "published": published,
+                    "cvss_score": cvss_score,
+                    "severity": severity,
+                    "index": hit.get("_index", "cve"),
+                    "source_fields": list(source.keys())
+                }
+
+                candidates.append(candidate)
+
+            logger.info(f"Found {len(candidates)} candidate CVEs from OpenSearch cve index page")
+            return candidates
+
+        except Exception as e:
+            logger.error(f"Failed to query OpenSearch cve index page: {e}")
+            return []
+
     def _check_postgresql_state_corrected(self, cve_id: str) -> Tuple[bool, List[str], str]:
         """
         Check database state for a CVE with corrected Phase 1 filters.
@@ -275,25 +391,9 @@ class Phase1CVESelectorCorrected:
             exclusion_category = "excluded_already_approved"
             return False, filter_reasons, exclusion_category
 
-        # 3. Check if has truly successful generation run
-        has_successful_generation = self.db.fetch_one(
-            """
-            SELECT EXISTS (
-                SELECT 1
-                FROM generation_runs gr
-                LEFT JOIN qa_runs qa ON gr.id = qa.generation_run_id
-                WHERE gr.cve_id = %s
-                  AND gr.status = 'completed'
-                  AND gr.response IS NOT NULL
-                  AND btrim(gr.response) <> ''
-                  AND qa.qa_result = 'approved'
-            ) AS has_successful_generation
-            """,
-            (cve_id,)
-        )
-
-        if has_successful_generation and has_successful_generation.get("has_successful_generation"):
-            filter_reasons.append("Has truly successful generation run (completed + response + QA approved)")
+        # 3. Check if has existing generated playbook (completed + non-empty response)
+        if self._has_existing_generated_playbook(cve_id):
+            filter_reasons.append("Has existing generated playbook (completed + non-empty response)")
             exclusion_category = "excluded_successful_generation_exists"
             return False, filter_reasons, exclusion_category
 
@@ -444,39 +544,91 @@ class Phase1CVESelectorCorrected:
 
     def run_selection_corrected(self, limit: int = 100) -> Dict[str, Any]:
         """
-        Run complete corrected Phase 1 selection process.
+        Run complete corrected Phase 1 selection process with paged scanning.
+        
+        Note: The 'limit' parameter is kept for backward compatibility but is ignored.
+        The new paged scanning logic uses fixed parameters:
+        - Scan OpenSearch in pages (batches of 100)
+        - Continue scanning until we have at least 10 eligible CVEs OR we've scanned 1000 total rows
+        - Preserve all exclusion rules
         """
-        logger.info("Starting CORRECTED Phase 1 CVE selection...")
-
-        candidates = self.query_opensearch_cve_index(limit)
-        self.results["number_of_candidates_returned_from_opensearch"] = len(candidates)
-        self.results["candidates_from_opensearch"] = candidates
-
-        self.results["candidates_fetched"] = len(candidates)
-        self.results["candidates_considered"] = len(candidates)
-
-        if not candidates:
-            logger.error("No candidates returned from OpenSearch cve index")
+        logger.info("Starting CORRECTED Phase 1 CVE selection with paged scanning...")
+        
+        page_size = 100
+        max_total_scanned = 1000
+        min_eligible_needed = 10
+        
+        all_candidates = []
+        all_eligible = []
+        all_filtered = []
+        
+        offset = 0
+        total_scanned = 0
+        
+        logger.info(f"Starting paged scan: page_size={page_size}, max_total_scanned={max_total_scanned}, min_eligible_needed={min_eligible_needed}")
+        
+        while total_scanned < max_total_scanned and len(all_eligible) < min_eligible_needed:
+            logger.info(f"Scanning page at offset {offset}...")
+            
+            page_candidates = self.query_opensearch_cve_index_paged(size=page_size, offset=offset)
+            
+            if not page_candidates:
+                logger.info("No more candidates returned from OpenSearch")
+                break
+            
+            all_candidates.extend(page_candidates)
+            
+            # Filter this page against PostgreSQL
+            page_eligible, page_filtered = self.filter_against_postgresql_corrected(page_candidates)
+            all_eligible.extend(page_eligible)
+            all_filtered.extend(page_filtered)
+            
+            offset += len(page_candidates)
+            total_scanned += len(page_candidates)
+            
+            logger.info(f"Page scan complete: {len(page_candidates)} candidates, {len(page_eligible)} eligible, {len(page_filtered)} filtered")
+            logger.info(f"Cumulative: {total_scanned} total scanned, {len(all_eligible)} eligible so far")
+        
+        logger.info(f"Paged scan complete: scanned {total_scanned} total candidates, found {len(all_eligible)} eligible candidates")
+        
+        # Update results with full scanned set
+        self.results["number_of_candidates_returned_from_opensearch"] = len(all_candidates)
+        self.results["candidates_from_opensearch"] = all_candidates
+        
+        self.results["candidates_fetched"] = len(all_candidates)
+        self.results["candidates_considered"] = len(all_candidates)
+        
+        if not all_candidates:
+            logger.error("No candidates returned from OpenSearch cve index after paged scanning")
             return self.results
-
-        eligible_candidates, filtered_candidates = self.filter_against_postgresql_corrected(candidates)
-        self.results["number_filtered_out_by_postgres"] = len(filtered_candidates)
-        self.results["filtered_candidates"] = filtered_candidates
-        self.results["eligible_candidates"] = eligible_candidates
-
-        self.results["filtered_out"] = len(filtered_candidates)
-        self.results["candidates_filtered"] = len(filtered_candidates)
-        self.results["eligible_count"] = len(eligible_candidates)
-
-        selected_cve = self.select_fresh_cve_phase1(eligible_candidates)
-
+        
+        self.results["number_filtered_out_by_postgres"] = len(all_filtered)
+        self.results["filtered_candidates"] = all_filtered
+        self.results["eligible_candidates"] = all_eligible
+        
+        self.results["filtered_out"] = len(all_filtered)
+        self.results["candidates_filtered"] = len(all_filtered)
+        self.results["eligible_count"] = len(all_eligible)
+        
+        # Add scanning metadata
+        self.results["scanning_metadata"] = {
+            "page_size": page_size,
+            "max_total_scanned": max_total_scanned,
+            "min_eligible_needed": min_eligible_needed,
+            "total_scanned": total_scanned,
+            "pages_scanned": offset // page_size,
+            "scanning_stopped_reason": "reached_max_scanned" if total_scanned >= max_total_scanned else "found_enough_eligible" if len(all_eligible) >= min_eligible_needed else "no_more_candidates"
+        }
+        
+        selected_cve = self.select_fresh_cve_phase1(all_eligible)
+        
         if selected_cve:
             self.results["selected_cve"] = selected_cve["cve_id"]
             self.results["reason_selected"] = selected_cve.get("selection_reason", [])
             logger.info(f"Successfully selected CVE: {selected_cve['cve_id']}")
         else:
             logger.warning("No CVE selected from eligible candidates")
-
+        
         return self.results
 
     def print_results(self, output_json: bool = False):
@@ -485,12 +637,24 @@ class Phase1CVESelectorCorrected:
             return
 
         print("\n" + "=" * 80)
-        print("CORRECTED PHASE 1 CVE SELECTION RESULTS")
+        print("CORRECTED PHASE 1 CVE SELECTION RESULTS (WITH PAGED SCANNING)")
         print("=" * 80)
         print(f"Timestamp (UTC): {self.results['timestamp_utc']}")
         print(f"Candidates from OpenSearch: {self.results.get('number_of_candidates_returned_from_opensearch', 0)}")
         print(f"Filtered out by PostgreSQL: {self.results.get('number_filtered_out_by_postgres', 0)}")
         print(f"Eligible candidates: {len(self.results.get('eligible_candidates', []))}")
+
+        # Display scanning metadata if available
+        if "scanning_metadata" in self.results:
+            scanning = self.results["scanning_metadata"]
+            print("\nSCANNING METADATA:")
+            print("-" * 40)
+            print(f"  Total scanned: {scanning.get('total_scanned', 0)}")
+            print(f"  Pages scanned: {scanning.get('pages_scanned', 0)}")
+            print(f"  Stopped reason: {scanning.get('scanning_stopped_reason', 'unknown')}")
+            print(f"  Page size: {scanning.get('page_size', 100)}")
+            print(f"  Max scan limit: {scanning.get('max_total_scanned', 1000)}")
+            print(f"  Min eligible needed: {scanning.get('min_eligible_needed', 10)}")
 
         print("\nEXCLUSION COUNTS (Corrected Policy):")
         print("-" * 40)
