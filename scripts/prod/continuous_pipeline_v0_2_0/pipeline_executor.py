@@ -1,7 +1,12 @@
 """
-Internal pipeline executor
-Version: v0.2.0
-Timestamp (UTC): 2026-04-16T23:45:00Z
+Internal pipeline executor with canonical generation path
+Version: v0.2.0_canonical
+Timestamp (UTC): 2026-04-17T00:45:00Z
+
+Purpose:
+- Use canonical prompt builder and schema from Phase 1 runner
+- Ensure prompt/schema convergence between pipelines
+- Maintain same queueing, claiming, and persistence behavior
 """
 
 from __future__ import annotations
@@ -15,7 +20,7 @@ from .db_clients import PlaybookEngineClient
 from .generation_guard import GenerationRunGuard
 from .llm_client import LLMClient
 from .opensearch_client import OpenSearchClient
-from .prompt_builder import PromptBuilder
+from .generation_payload_builder import GenerationPayloadBuilder
 
 
 class PipelineExecutor:
@@ -23,14 +28,15 @@ class PipelineExecutor:
         self.db = PlaybookEngineClient()
         self.os = OpenSearchClient()
         self.llm = LLMClient()
-        self.prompt_builder = PromptBuilder()
         self.generation_guard = GenerationRunGuard()
+        self.generation_payload_builder = GenerationPayloadBuilder(self.db, self.os)
         self.logger = logging.getLogger(__name__)
 
     def run(self, cve_id: str) -> dict[str, Any]:
-        self.logger.info(f"Starting pipeline execution for CVE: {cve_id}")
+        self.logger.info(f"Starting canonical pipeline execution for CVE: {cve_id}")
         
         try:
+            # Check if already generated (guard)
             if self.generation_guard.exists_completed_nonempty(cve_id):
                 self.logger.info(f"CVE {cve_id} already generated in generation_runs, skipping")
                 return {
@@ -43,122 +49,104 @@ class PipelineExecutor:
                     'error': 'already generated in generation_runs',
                 }
 
-            self.logger.info(f"Stage 1: Fetching CVE from OpenSearch")
-            cve_doc = self.os.fetch_cve(cve_id)
-            self.logger.info(f"Stage 1 complete: Retrieved CVE document with {len(cve_doc)} fields")
+            self.logger.info(f"Stage 1: Building canonical generation payload")
+            generation_payload = self.generation_payload_builder.build_generation_payload(cve_id)
+            cve_doc = generation_payload['cve_doc']
+            evidence_package = generation_payload['evidence_package']
+            prompt = generation_payload['prompt']
+            debug_info = generation_payload['debug_info']
+            
+            # Log debug info
+            self.logger.info(f"Stage 1 complete: Canonical payload built")
+            self.logger.info(f"  Prompt builder: {debug_info.get('prompt_builder_selected')}")
+            self.logger.info(f"  Schema module: {debug_info.get('schema_module_selected')}")
+            self.logger.info(f"  Prompt length: {debug_info.get('prompt_length')} chars")
+            self.logger.info(f"  Evidence count: {debug_info.get('evidence_count')}")
+            self.logger.info(f"  Retrieval decision: {debug_info.get('retrieval_decision')}")
             
             self.logger.info(f"Stage 2: Storing context snapshot")
             context_snapshot_id = self._store_context_snapshot(cve_id, cve_doc)
             self.logger.info(f"Stage 2 complete: context_snapshot_id={context_snapshot_id}")
             
-            self.logger.info(f"Stage 3: Storing retrieval run")
-            retrieval_run_id = self._store_retrieval(cve_id, cve_doc)
+            self.logger.info(f"Stage 3: Persisting retrieval run with evidence")
+            retrieval_run_id = self.generation_payload_builder.evidence_packager.persist_retrieval_run(
+                cve_id, evidence_package
+            )
             self.logger.info(f"Stage 3 complete: retrieval_run_id={retrieval_run_id}")
             
-            self.logger.info(f"Stage 4: Building prompt")
-            prompt = self.prompt_builder.build(cve_doc)
-            self.logger.info(f"Stage 4 complete: prompt length={len(prompt)}")
-            
-            self.logger.info(f"Stage 5: Storing generation start")
-            generation_run_id = self._store_generation_started(cve_id, prompt, context_snapshot_id)
-            self.logger.info(f"Stage 5 complete: generation_run_id={generation_run_id}")
-            
-            self.logger.info(f"Stage 6: Calling LLM")
+            self.logger.info(f"Stage 4: Calling LLM with canonical prompt")
             llm_response = self.llm.generate(prompt)
             response_text = llm_response.get('response') or json.dumps(llm_response)
-            self.logger.info(f"Stage 6 complete: LLM response length={len(response_text)}")
+            self.logger.info(f"Stage 4 complete: LLM response length={len(response_text)}")
             
-            self.logger.info(f"Stage 7: Marking generation completed")
-            self._mark_generation_completed(generation_run_id, response_text)
-            self.logger.info(f"Stage 7 complete: Generation marked completed")
+            self.logger.info(f"Stage 5: Validating response against canonical schema")
+            is_valid, normalized_playbook, validation_result = self.generation_payload_builder.validate_response(
+                response_text
+            )
+            self.logger.info(f"Stage 5 complete: Validation passed={is_valid}")
             
-            self.logger.info(f"Pipeline execution successful for CVE: {cve_id}")
-            return {
+            if not is_valid:
+                self.logger.warning(f"Schema validation failed: {validation_result.get('errors', [])}")
+            
+            self.logger.info(f"Stage 6: Persisting generation run")
+            generation_run_id = self.generation_payload_builder.persist_generation_run(
+                cve_id=cve_id,
+                prompt=prompt,
+                raw_response=response_text,
+                validation_result=validation_result,
+                retrieval_run_id=retrieval_run_id
+            )
+            self.logger.info(f"Stage 6 complete: generation_run_id={generation_run_id}")
+            
+            # Build result
+            result = {
                 'execution_status': 'completed',
-                'pipeline_status': 'success',
-                'generation_status': 'completed',
+                'pipeline_status': 'success' if is_valid else 'validation_failed',
+                'generation_status': 'completed' if is_valid else 'failed',
                 'generation_run_id': generation_run_id,
                 'context_snapshot_id': context_snapshot_id,
                 'retrieval_run_id': retrieval_run_id,
                 'response': response_text,
+                'validation_passed': is_valid,
+                'validation_errors': validation_result.get('errors', []),
+                'validation_warnings': validation_result.get('warnings', []),
+                'debug_info': debug_info
             }
+            
+            if is_valid and normalized_playbook:
+                result['normalized_playbook'] = normalized_playbook
+            
+            self.logger.info(f"Canonical pipeline execution completed for CVE: {cve_id}")
+            self.logger.info(f"  Generation run ID: {generation_run_id}")
+            self.logger.info(f"  Validation passed: {is_valid}")
+            self.logger.info(f"  Schema compliance: {validation_result.get('schema_compliance', {})}")
+            
+            return result
+            
         except Exception as e:
-            self.logger.error(f"Pipeline execution failed for CVE {cve_id}: {e}")
+            self.logger.error(f"Canonical pipeline execution failed for CVE {cve_id}: {e}")
             self.logger.error(f"Traceback: {traceback.format_exc()}")
             raise
 
     def _store_context_snapshot(self, cve_id: str, cve_doc: dict[str, Any]) -> int | None:
+        # Use the canonical prompt builder to normalize context
+        from .canonical_prompt_builder import CanonicalPromptBuilder
+        prompt_builder = CanonicalPromptBuilder(self.db)
+        normalized_context = prompt_builder._normalize_context_snapshot(cve_doc, cve_id)
+        
         payload = {
             'cve_id': cve_id,
-            'context_data': json.dumps(cve_doc),
+            'context_data': json.dumps(normalized_context),
             'created_at': self._sql_now(),
         }
         return self._safe_dynamic_insert('public.cve_context_snapshot', payload)
 
-    def _store_retrieval(self, cve_id: str, cve_doc: dict[str, Any]) -> int | None:
-        retrieval_run_id = self._safe_dynamic_insert(
-            'public.retrieval_runs',
-            {
-                'cve_id': cve_id,
-                'status': 'completed',
-                'source': 'opensearch_nvd',
-                'created_at': self._sql_now(),
-            },
-        )
-        if retrieval_run_id is not None:
-            self._safe_dynamic_insert(
-                'public.retrieval_documents',
-                {
-                    'run_id': retrieval_run_id,
-                    'retrieval_run_id': retrieval_run_id,
-                    'cve_id': cve_id,
-                    'source': 'opensearch_nvd',
-                    'document_id': cve_doc.get('source_doc_id'),
-                    'content': json.dumps(cve_doc),
-                    'content_text': json.dumps(cve_doc),
-                    'metadata_json': json.dumps({'references': cve_doc.get('references', [])}),
-                    'created_at': self._sql_now(),
-                },
-            )
-        return retrieval_run_id
-
-    def _store_generation_started(self, cve_id: str, prompt: str, context_snapshot_id: int | None) -> int:
-        payload = {
-            'cve_id': cve_id,
-            'status': 'running',
-            'prompt_text': prompt,
-            'prompt': prompt,
-            'generation_source': 'continuous_pipeline_v0_2_0',
-            'context_snapshot_id': context_snapshot_id,
-            'created_at': self._sql_now(),
-        }
-        generation_run_id = self._safe_dynamic_insert('public.generation_runs', payload)
-        if generation_run_id is None:
-            raise RuntimeError('Failed to persist generation_runs start record')
-        return int(generation_run_id)
-
-    def _mark_generation_completed(self, generation_run_id: int, response_text: str):
-        available = set(self.db.table_columns('public', 'generation_runs'))
-        updates = []
-        params: list[Any] = []
-        for col, value in [
-            ('status', 'completed'),
-            ('response', response_text),
-            ('raw_response', response_text),
-            ('pipeline_status', 'success'),
-            ('updated_at', self._sql_now()),
-            ('completed_at', self._sql_now()),
-        ]:
-            if col in available:
-                if value == self._sql_now():
-                    updates.append(f"{col} = NOW()")
-                else:
-                    updates.append(f"{col} = %s")
-                    params.append(value)
-        if not updates:
-            raise RuntimeError('generation_runs has no updateable completion columns')
-        params.append(generation_run_id)
-        self.db.execute(f"UPDATE public.generation_runs SET {', '.join(updates)} WHERE id = %s", tuple(params))
+    # Note: The following methods are no longer used in the canonical path:
+    # - _store_retrieval: Replaced by evidence_packager.persist_retrieval_run
+    # - _store_generation_started: Replaced by generation_payload_builder.persist_generation_run
+    # - _mark_generation_completed: Replaced by generation_payload_builder.persist_generation_run
+    
+    # These methods are kept for backward compatibility but not called in the canonical path
 
     def _safe_dynamic_insert(self, fq_table: str, data: dict[str, Any]) -> int | None:
         try:

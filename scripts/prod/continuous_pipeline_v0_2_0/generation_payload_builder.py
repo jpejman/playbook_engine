@@ -1,7 +1,7 @@
 """
-Generation Payload Builder for Continuous Pipeline v0.2.1
-Version: v0.2.1
-Timestamp (UTC): 2026-04-17T14:36:53Z
+Generation Payload Builder for Continuous Pipeline v0.2.0
+Version: v0.2.0
+Timestamp (UTC): 2026-04-17T00:45:00Z
 
 Purpose:
 - Build complete generation payload for LLM
@@ -239,9 +239,7 @@ class GenerationPayloadBuilder:
         return warnings
     
     def persist_generation_run(self, cve_id: str, prompt: str, raw_response: str, 
-                             validation_result: Dict[str, Any], retrieval_run_id: Optional[int] = None,
-                             model: Optional[str] = None, run_duration_seconds: Optional[float] = None,
-                             creator_script: Optional[str] = None) -> Optional[int]:
+                             validation_result: Dict[str, Any], retrieval_run_id: Optional[int] = None) -> Optional[int]:
         """
         Persist generation run to database.
         
@@ -283,18 +281,6 @@ class GenerationPayloadBuilder:
                 "created_at": "NOW()"
             }
             
-            # Add model information
-            if model:
-                insert_data["model"] = model
-            
-            # Add runtime duration
-            if run_duration_seconds is not None:
-                insert_data["run_duration_seconds"] = run_duration_seconds
-            
-            # Add creator script provenance
-            if creator_script:
-                insert_data["creator_script"] = creator_script
-            
             # Add retrieval run ID if available
             if retrieval_run_id is not None:
                 insert_data["retrieval_run_id"] = retrieval_run_id
@@ -304,7 +290,7 @@ class GenerationPayloadBuilder:
             if debug_info:
                 insert_data["metadata"] = json.dumps({
                     "validation_debug": debug_info,
-                    "pipeline_version": "v0.2.2_metadata_enriched"
+                    "pipeline_version": "v0.2.0_canonical"
                 })
             
             # Insert generation run

@@ -19,7 +19,7 @@ from .llm_client import LLMClient
 from .opensearch_client import OpenSearchClient
 from .pipeline_executor import PipelineExecutor
 from .production_guard import ProductionPlaybookGuard
-from .prompt_builder import PromptBuilder
+from .generation_payload_builder import GenerationPayloadBuilder
 
 
 class DebugCVERunnerV020:
@@ -27,10 +27,10 @@ class DebugCVERunnerV020:
         self.playbook_engine = PlaybookEngineClient()
         self.opensearch = OpenSearchClient()
         self.llm = LLMClient()
-        self.prompt_builder = PromptBuilder()
         self.generation_guard = GenerationRunGuard()
         self.production_guard = ProductionPlaybookGuard()
         self.executor = PipelineExecutor()
+        self.generation_payload_builder = GenerationPayloadBuilder(self.playbook_engine, self.opensearch)
         
         # Configure logging
         logging.basicConfig(
@@ -80,15 +80,23 @@ class DebugCVERunnerV020:
             success = False
             return False
         
-        # Step 4: Build prompt
-        print("\n4. Building prompt...")
+        # Step 4: Test canonical prompt builder
+        print("\n4. Testing canonical prompt builder...")
         try:
-            prompt = self.prompt_builder.build(cve_doc)
-            print(f"   [OK] Prompt built")
-            print(f"   Prompt length: {len(prompt)} chars")
+            # Build generation payload to test canonical components
+            generation_payload = self.generation_payload_builder.build_generation_payload(cve_id)
+            prompt = generation_payload['prompt']
+            debug_info = generation_payload['debug_info']
+            
+            print(f"   [OK] Canonical prompt built")
+            print(f"   Prompt builder: {debug_info.get('prompt_builder_selected')}")
+            print(f"   Schema module: {debug_info.get('schema_module_selected')}")
+            print(f"   Prompt length: {debug_info.get('prompt_length')} chars")
+            print(f"   Evidence count: {debug_info.get('evidence_count')}")
+            print(f"   Retrieval decision: {debug_info.get('retrieval_decision')}")
             print(f"   First 200 chars: {prompt[:200]}...")
         except Exception as e:
-            print(f"   [ERROR] Failed to build prompt: {e}")
+            print(f"   [ERROR] Failed to build canonical prompt: {e}")
             success = False
         
         # Step 5: Check LLM connection

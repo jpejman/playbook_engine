@@ -18,11 +18,12 @@ from .db_clients import PlaybookEngineClient
 
 
 class WorkerProcessor:
-    def __init__(self):
+    def __init__(self, creator_script: Optional[str] = None):
         self.production_guard = ProductionPlaybookGuard()
         self.generation_guard = GenerationRunGuard()
         self.failure_classifier = FailureClassifier()
         self.executor = PipelineExecutor()
+        self.creator_script = creator_script
         self.logger = logging.getLogger(__name__)
 
     def process(self, cve_id: str) -> WorkerProcessResult:
@@ -67,7 +68,7 @@ class WorkerProcessor:
                 )
             
             self.logger.info(f"Starting pipeline execution for {cve_id}")
-            results = self.executor.run(cve_id)
+            results = self.executor.run(cve_id, creator_script=self.creator_script)
             self.logger.info(f"Pipeline execution completed for {cve_id}")
             
             success = (

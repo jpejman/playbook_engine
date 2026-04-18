@@ -58,6 +58,11 @@ class FailureClassifier:
         if 'json' in msg and ('decode' in msg or 'parse' in msg or 'invalid' in msg):
             return 'JSON_PARSE_ERROR', False
             
+        # Schema validation failures (deterministic, non-retryable)
+        if any(pattern in msg for pattern in ['schema', 'validation', 'canonical', 'header', 'workflows', 'pre_remediation_checks']):
+            if 'missing' in msg or 'required' in msg or 'invalid' in msg or 'does not match' in msg:
+                return 'SCHEMA_VALIDATION_FAIL', False
+            
         # Missing required fields
         if 'missing' in msg and ('field' in msg or 'required' in msg):
             return 'MISSING_REQUIRED_FIELDS', False

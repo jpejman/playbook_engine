@@ -24,24 +24,53 @@ class QueueFeederService:
 
     def queue_contains(self, cve_id: str) -> bool:
         row = self.db.fetch_one(
-            "SELECT EXISTS (SELECT 1 FROM public.cve_queue WHERE cve_id = %s AND status IN ('pending','processing','completed')) AS exists",
+            """
+            SELECT EXISTS (
+                SELECT 1
+                FROM public.cve_queue
+                WHERE cve_id = %s
+                  AND status IN ('pending', 'processing')
+            ) AS exists
+            """,
             (cve_id,),
         )
-        return bool(row and row.get('exists'))
+        return bool(row and row.get("exists"))
 
-    def enqueue_cve(self, cve_id: str, source: str = 'opensearch_nvd') -> bool:
-        row = self.db.execute_returning_one(
-            """
-            INSERT INTO public.cve_queue (cve_id, status, created_at, updated_at, retry_count, source)
-            SELECT %s, 'pending', NOW(), NOW(), 0, %s
-            WHERE NOT EXISTS (
-                SELECT 1 FROM public.cve_queue WHERE cve_id = %s AND status IN ('pending','processing')
-            )
-            RETURNING id
-            """,
-            (cve_id, source, cve_id),
-        )
-        return bool(row and row.get('id'))
+    def enqueue_cve(self, cve_id: str, source: str = 'opensearch_nvd', force_requeue_completed: bool = False) -> bool:
+        try:
+            if force_requeue_completed:
+                # Force requeue mode: update existing row regardless of status
+                row = self.db.execute_returning_one(
+                    """
+                    INSERT INTO public.cve_queue (cve_id, status, created_at, updated_at, retry_count, source)
+                    VALUES (%s, 'pending', NOW(), NOW(), 0, %s)
+                    ON CONFLICT (cve_id) DO UPDATE 
+                    SET status = EXCLUDED.status,
+                        updated_at = NOW(),
+                        source = EXCLUDED.source,
+                        retry_count = 0
+                    RETURNING id
+                    """,
+                    (cve_id, source),
+                )
+            else:
+                # Default mode: insert only if cve_id does not already exist
+                # Do NOT reactivate failed/completed rows automatically
+                row = self.db.execute_returning_one(
+                    """
+                    INSERT INTO public.cve_queue (cve_id, status, created_at, updated_at, retry_count, source)
+                    VALUES (%s, 'pending', NOW(), NOW(), 0, %s)
+                    ON CONFLICT (cve_id) DO NOTHING
+                    RETURNING id
+                    """,
+                    (cve_id, source),
+                )
+            return bool(row and row.get('id'))
+        except Exception as e:
+            # Log the error but don't crash - just return False
+            import logging
+            logging.getLogger(__name__).warning(f"Failed to enqueue CVE {cve_id}: {e}")
+            return False
 
     def fill_from_opensearch(self, page_size: int, max_scan: int, target_enqueue: int) -> QueueFillSummary:
         self.schema_service.ensure_columns()
@@ -78,7 +107,7 @@ class QueueFeederService:
                     if scanned >= max_scan or enqueued >= target_enqueue:
                         break
                     continue
-                if self.enqueue_cve(cve_id):
+                if self.enqueue_cve(cve_id, source='opensearch_nvd', force_requeue_completed=False):
                     enqueued += 1
                 if scanned >= max_scan or enqueued >= target_enqueue:
                     break

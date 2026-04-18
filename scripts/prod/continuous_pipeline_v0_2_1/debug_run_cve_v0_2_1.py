@@ -23,7 +23,7 @@ from .generation_payload_builder import GenerationPayloadBuilder
 
 
 class DebugCVERunnerV021:
-    def __init__(self):
+    def __init__(self, creator_script: Optional[str] = None):
         self.playbook_engine = PlaybookEngineClient()
         self.opensearch = OpenSearchClient()
         self.llm = LLMClient()
@@ -31,6 +31,7 @@ class DebugCVERunnerV021:
         self.production_guard = ProductionPlaybookGuard()
         self.executor = PipelineExecutor()
         self.generation_payload_builder = GenerationPayloadBuilder(self.playbook_engine, self.opensearch)
+        self.creator_script = creator_script
         
         # Configure logging
         logging.basicConfig(
@@ -133,7 +134,7 @@ class DebugCVERunnerV021:
         # Step 7: Run full pipeline
         print("\n7. Running full pipeline...")
         try:
-            results = self.executor.run(cve_id)
+            results = self.executor.run(cve_id, creator_script=self.creator_script)
             print(f"   [OK] Pipeline execution completed")
             print(f"   Execution status: {results.get('execution_status')}")
             print(f"   Pipeline status: {results.get('pipeline_status')}")
@@ -234,10 +235,11 @@ def main():
     parser.add_argument('--cve-id', required=True, help='CVE ID to process (e.g., CVE-2025-63458)')
     parser.add_argument('--verify-only', action='store_true', help='Only verify DB writes without processing')
     parser.add_argument('--generation-run-id', type=int, help='Specific generation run ID to verify')
+    parser.add_argument('--creator-script', type=str, default='scripts.prod.continuous_pipeline_v0_2_1.debug_run_cve_v0_2_1')
     
     args = parser.parse_args()
     
-    runner = DebugCVERunnerV021()
+    runner = DebugCVERunnerV021(creator_script=args.creator_script)
     
     if args.verify_only:
         success = runner.verify_db_writes(args.cve_id, args.generation_run_id)

@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import logging
+import time
 import traceback
 from typing import Any
 
@@ -32,8 +33,11 @@ class PipelineExecutor:
         self.generation_payload_builder = GenerationPayloadBuilder(self.db, self.os)
         self.logger = logging.getLogger(__name__)
 
-    def run(self, cve_id: str) -> dict[str, Any]:
+    def run(self, cve_id: str, creator_script: Optional[str] = None) -> dict[str, Any]:
         self.logger.info(f"Starting canonical pipeline execution for CVE: {cve_id}")
+        
+        # Capture start time for runtime duration
+        start_time = time.time()
         
         try:
             # Check if already generated (guard)
@@ -77,7 +81,10 @@ class PipelineExecutor:
             self.logger.info(f"Stage 4: Calling LLM with canonical prompt")
             llm_response = self.llm.generate(prompt)
             response_text = llm_response.get('response') or json.dumps(llm_response)
-            self.logger.info(f"Stage 4 complete: LLM response length={len(response_text)}")
+            
+            # Get model from LLM response or fallback to configured model
+            model = llm_response.get('model', self.llm.model)
+            self.logger.info(f"Stage 4 complete: LLM response length={len(response_text)}, model={model}")
             
             self.logger.info(f"Stage 5: Validating response against canonical schema")
             is_valid, normalized_playbook, validation_result = self.generation_payload_builder.validate_response(
@@ -88,15 +95,21 @@ class PipelineExecutor:
             if not is_valid:
                 self.logger.warning(f"Schema validation failed: {validation_result.get('errors', [])}")
             
-            self.logger.info(f"Stage 6: Persisting generation run")
+            # Calculate runtime duration
+            run_duration_seconds = time.time() - start_time
+            
+            self.logger.info(f"Stage 6: Persisting generation run with metadata")
             generation_run_id = self.generation_payload_builder.persist_generation_run(
                 cve_id=cve_id,
                 prompt=prompt,
                 raw_response=response_text,
                 validation_result=validation_result,
-                retrieval_run_id=retrieval_run_id
+                retrieval_run_id=retrieval_run_id,
+                model=model,
+                run_duration_seconds=run_duration_seconds,
+                creator_script=creator_script
             )
-            self.logger.info(f"Stage 6 complete: generation_run_id={generation_run_id}")
+            self.logger.info(f"Stage 6 complete: generation_run_id={generation_run_id}, duration={run_duration_seconds:.3f}s")
             
             # Build result
             result = {

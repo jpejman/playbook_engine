@@ -14,6 +14,7 @@ from .generation_guard import GenerationRunGuard
 from .models import WorkerProcessResult
 from .pipeline_executor import PipelineExecutor
 from .production_guard import ProductionPlaybookGuard
+from .db_clients import PlaybookEngineClient
 
 
 class WorkerProcessor:
@@ -27,6 +28,18 @@ class WorkerProcessor:
     def process(self, cve_id: str) -> WorkerProcessResult:
         self.logger.info(f"Processing CVE: {cve_id}")
         try:
+            # Loop-prevention diagnostic logging
+            self.logger.info(f"=== LOOP-PREVENTION DIAGNOSTICS for {cve_id} ===")
+            
+            # Check queue status
+            queue_info = self._get_queue_info(cve_id)
+            if queue_info:
+                self.logger.info(f"Queue info: id={queue_info.get('id')}, status={queue_info.get('status')}, retry_count={queue_info.get('retry_count')}")
+            
+            # Check generation guard
+            generation_exists = self.generation_guard.exists_completed_nonempty(cve_id)
+            self.logger.info(f"Generation guard completed_nonempty: {generation_exists}")
+            
             self.logger.info(f"Checking production existence for {cve_id}")
             if self.production_guard.exists(cve_id):
                 self.logger.info(f"CVE {cve_id} already in production, skipping")
@@ -41,7 +54,7 @@ class WorkerProcessor:
                 )
             
             self.logger.info(f"Checking generation existence for {cve_id}")
-            if self.generation_guard.exists_completed_nonempty(cve_id):
+            if generation_exists:
                 self.logger.info(f"CVE {cve_id} already generated, skipping")
                 return WorkerProcessResult(
                     cve_id=cve_id,
@@ -114,3 +127,22 @@ class WorkerProcessor:
                 pipeline_status='worker_exception',
                 execution_status='failed',
             )
+    
+    def _get_queue_info(self, cve_id: str) -> dict:
+        """Get queue information for diagnostic logging."""
+        try:
+            db = PlaybookEngineClient()
+            row = db.fetch_one(
+                """
+                SELECT id, status, retry_count
+                FROM public.cve_queue
+                WHERE cve_id = %s
+                ORDER BY updated_at DESC
+                LIMIT 1
+                """,
+                (cve_id,),
+            )
+            return row if row else {}
+        except Exception as e:
+            self.logger.warning(f"Failed to get queue info for {cve_id}: {e}")
+            return {}

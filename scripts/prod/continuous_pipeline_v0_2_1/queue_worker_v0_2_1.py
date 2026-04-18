@@ -34,6 +34,7 @@ class ContinuousPipelineWorkerV020:
         feed_page_size: int = ContinuousPipelineConfig.DEFAULT_FEED_PAGE_SIZE,
         feed_max_scan: int = ContinuousPipelineConfig.DEFAULT_FEED_MAX_SCAN,
         feed_target: int = ContinuousPipelineConfig.DEFAULT_FEED_TARGET,
+        creator_script: Optional[str] = None,
     ):
         self.wait_seconds = wait_seconds
         self.max_retries = max_retries if max_retries is not None else ContinuousPipelineConfig.DEFAULT_MAX_RETRIES
@@ -44,11 +45,12 @@ class ContinuousPipelineWorkerV020:
         self.feed_page_size = feed_page_size
         self.feed_max_scan = feed_max_scan
         self.feed_target = feed_target
+        self.creator_script = creator_script
 
         self.schema_service = QueueSchemaService()
         self.claim_service = QueueClaimService()
         self.status_service = QueueStatusService()
-        self.processor = WorkerProcessor()
+        self.processor = WorkerProcessor(creator_script=creator_script)
         self.feeder = QueueFeederService()
         self.failure_classifier = FailureClassifier()
         self.logger = get_logger("queue_worker_v0_2_1")
@@ -230,6 +232,7 @@ def main():
     parser.add_argument('--feed-page-size', type=int, default=ContinuousPipelineConfig.DEFAULT_FEED_PAGE_SIZE)
     parser.add_argument('--feed-max-scan', type=int, default=ContinuousPipelineConfig.DEFAULT_FEED_MAX_SCAN)
     parser.add_argument('--feed-target', type=int, default=ContinuousPipelineConfig.DEFAULT_FEED_TARGET)
+    parser.add_argument('--creator-script', type=str, default='scripts.prod.continuous_pipeline_v0_2_1.queue_worker_v0_2_1')
     args = parser.parse_args()
     worker = ContinuousPipelineWorkerV020(
         wait_seconds=args.wait_seconds,
@@ -241,6 +244,7 @@ def main():
         feed_page_size=args.feed_page_size,
         feed_max_scan=args.feed_max_scan,
         feed_target=args.feed_target,
+        creator_script=args.creator_script,
     )
     worker.run()
 
