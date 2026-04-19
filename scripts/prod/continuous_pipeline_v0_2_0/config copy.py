@@ -54,27 +54,7 @@ class ContinuousPipelineConfig:
 
     LLM_BASE_URL = os.getenv("LLM_BASE_URL", "http://localhost:11434")
     LLM_GENERATE_PATH = os.getenv("LLM_GENERATE_PATH", "/api/generate")
-
- # ============================================================
-    # LLM MODEL CONFIGURATION
-    # Keep candidate models here for quick testing and output review.
-    # Only one active default should be used at a time.
-    # Environment variable LLM_MODEL overrides DEFAULT_LLM_MODEL.
-    # ============================================================
-
-    # LLM_MODEL = "DeepSeek-Coder-V2"
-    # LLM_MODEL = "DeepSeek-R1"
-    # LLM_MODEL = "gemma3:4b"
-    # LLM_MODEL = "glm-5:cloud"
-    # LLM_MODEL = "kimi-k2.5:cloud"
-    # LLM_MODEL = "qwen2.5-Coder"
-    # LLM_MODEL = "qwen2.5:14b"
-    # LLM_MODEL = "qwen3:8b"
-    # LLM_MODEL = "qwen3.5:4b"
-    
-    DEFAULT_LLM_MODEL = "gemma3:4b"
-    LLM_MODEL = os.getenv("LLM_MODEL", DEFAULT_LLM_MODEL)
-
+    LLM_MODEL = os.getenv("LLM_MODEL", "gemma3:4b")
     LLM_TIMEOUT_SECONDS = int(os.getenv("LLM_TIMEOUT_SECONDS", "300"))
 
     DB_HOST = os.getenv("DB_HOST", "10.0.0.110")

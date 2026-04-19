@@ -1,7 +1,7 @@
 """
-Config for continuous_pipeline_v0_2_0
-Version: v0.2.0
-Timestamp (UTC): 2026-04-16T23:45:00Z
+Config for continuous_pipeline_v0_3_0 evaluation framework
+Version: v0.3.0
+Timestamp (UTC): 2026-04-18T23:12:39Z
 """
 
 from __future__ import annotations
@@ -15,6 +15,7 @@ class ContinuousPipelineConfig:
     STATUS_PROCESSING = "processing"
     STATUS_COMPLETED = "completed"
     STATUS_FAILED = "failed"
+    STATUS_DEAD_LETTER = "dead_letter"
 
     DEFAULT_WAIT_SECONDS = int(os.getenv("CP_WAIT_SECONDS", "0"))
     DEFAULT_MAX_RETRIES = int(os.getenv("CP_MAX_RETRIES", "2"))
@@ -25,6 +26,15 @@ class ContinuousPipelineConfig:
     DEFAULT_FEED_PAGE_SIZE = int(os.getenv("CP_FEED_PAGE_SIZE", "100"))
     DEFAULT_FEED_MAX_SCAN = int(os.getenv("CP_FEED_MAX_SCAN", "1000"))
     DEFAULT_FEED_TARGET = int(os.getenv("CP_FEED_TARGET", "100"))
+    DEFAULT_FEED_MAX_SCAN_WINDOWS = int(os.getenv("CP_FEED_MAX_SCAN_WINDOWS", "10"))
+    DEFAULT_FEED_MAX_TOTAL_SCAN = int(os.getenv("CP_FEED_MAX_TOTAL_SCAN", "5000"))
+    DEFAULT_FEED_MIN_ENQUEUE_REQUIRED = int(os.getenv("CP_FEED_MIN_ENQUEUE_REQUIRED", "5"))
+    
+    LOG_FILE = os.getenv("CP_LOG_FILE", "logs/continuous_pipeline_v0_3_0.log")
+    LOG_LEVEL = os.getenv("CP_LOG_LEVEL", "INFO")
+    LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    LOG_MAX_BYTES = 10 * 1024 * 1024  # 10MB
+    LOG_BACKUP_COUNT = 5
 
     FAILURE_RETRYABLE = {
         "LLM_ERROR",
@@ -52,10 +62,16 @@ class ContinuousPipelineConfig:
     OPENSEARCH_PASSWORD = os.getenv("OPENSEARCH_PASSWORD", "admin")
     OPENSEARCH_VERIFY_TLS = os.getenv("OPENSEARCH_VERIFY_TLS", "false").lower() in {"1", "true", "yes"}
 
-    LLM_BASE_URL = os.getenv("LLM_BASE_URL", "http://localhost:11434")
+    CP_FEED_USE_PERSISTENT_CURSOR = os.getenv("CP_FEED_USE_PERSISTENT_CURSOR", "false").lower() == "true"
+    CP_FEED_CURSOR_FEEDER_NAME = os.getenv("CP_FEED_CURSOR_FEEDER_NAME", "default_nvd_feeder")
+    CP_FEED_CURSOR_PAGE_SIZE = int(os.getenv("CP_FEED_CURSOR_PAGE_SIZE", "100"))
+
+    #LLM_BASE_URL = os.getenv("LLM_BASE_URL", "http://localhost:11434")
+    #LLM_BASE_URL = os.getenv("LLM_BASE_URL", "http://10.0.0.100:11434")
+    LLM_BASE_URL = os.getenv("LLM_BASE_URL", "http://10.0.0.202:11434")
     LLM_GENERATE_PATH = os.getenv("LLM_GENERATE_PATH", "/api/generate")
 
- # ============================================================
+    # ============================================================
     # LLM MODEL CONFIGURATION
     # Keep candidate models here for quick testing and output review.
     # Only one active default should be used at a time.
@@ -74,9 +90,11 @@ class ContinuousPipelineConfig:
     
     DEFAULT_LLM_MODEL = "gemma3:4b"
     LLM_MODEL = os.getenv("LLM_MODEL", DEFAULT_LLM_MODEL)
+    #LLM_MODEL = os.getenv("LLM_MODEL", "gemma3:4b")
 
     LLM_TIMEOUT_SECONDS = int(os.getenv("LLM_TIMEOUT_SECONDS", "300"))
 
+    #POSTGRES DB 
     DB_HOST = os.getenv("DB_HOST", "10.0.0.110")
     DB_PORT = os.getenv("DB_PORT", "5432")
     DB_USER = os.getenv("DB_USER", "vulnstrike")
