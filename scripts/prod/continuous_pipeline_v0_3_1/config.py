@@ -1,7 +1,7 @@
 """
-Config for continuous_pipeline_v0_2_1
-Version: v0.2.1
-Timestamp (UTC): 2026-04-17T14:36:53Z
+Config for continuous_pipeline_v0_3_0 evaluation framework
+Version: v0.3.0
+Timestamp (UTC): 2026-04-18T23:12:39Z
 """
 
 from __future__ import annotations
@@ -30,7 +30,7 @@ class ContinuousPipelineConfig:
     DEFAULT_FEED_MAX_TOTAL_SCAN = int(os.getenv("CP_FEED_MAX_TOTAL_SCAN", "5000"))
     DEFAULT_FEED_MIN_ENQUEUE_REQUIRED = int(os.getenv("CP_FEED_MIN_ENQUEUE_REQUIRED", "5"))
     
-    LOG_FILE = os.getenv("CP_LOG_FILE", "logs/continuous_pipeline_v0_2_1.log")
+    LOG_FILE = os.getenv("CP_LOG_FILE", "logs/continuous_pipeline_v0_3_0.log")
     LOG_LEVEL = os.getenv("CP_LOG_LEVEL", "INFO")
     LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     LOG_MAX_BYTES = 10 * 1024 * 1024  # 10MB
@@ -67,7 +67,8 @@ class ContinuousPipelineConfig:
     CP_FEED_CURSOR_PAGE_SIZE = int(os.getenv("CP_FEED_CURSOR_PAGE_SIZE", "100"))
 
     #LLM_BASE_URL = os.getenv("LLM_BASE_URL", "http://localhost:11434")
-    LLM_BASE_URL = os.getenv("LLM_BASE_URL", "http://10.0.0.100:11434")
+    #LLM_BASE_URL = os.getenv("LLM_BASE_URL", "http://10.0.0.100:11434")
+    LLM_BASE_URL = os.getenv("LLM_BASE_URL", "http://10.0.0.202:11434")
     LLM_GENERATE_PATH = os.getenv("LLM_GENERATE_PATH", "/api/generate")
 
     # ============================================================
@@ -93,26 +94,14 @@ class ContinuousPipelineConfig:
     # LLM_MODEL = "qwen3:8b" test
     # LLM_MODEL = "qwen3.5:4b"
     # LLM_MODEL = "qwen3.5:9b"
-
     
-    #DEFAULT_LLM_MODEL = "gemma3:4b"
-    #DEFAULT_LLM_MODEL = "gemma3:12b"
-    #DEFAULT_LLM_MODEL = "gemma4:e4b"
-    #DEFAULT_LLM_MODEL = "llama3.1:8b"
-    #DEFAULT_LLM_MODEL = "qwen2.5:14b"
-    #DEFAULT_LLM_MODEL = "qwen2.5-coder:14b"
-    #DEFAULT_LLM_MODEL = "qwen3:30b"
-    DEFAULT_LLM_MODEL = "qwen3:30b-a3b-instruct-2507-q4_K_M"
-    #DEFAULT_LLM_MODEL = "qwen3.5:4b"    
-    #DEFAULT_LLM_MODEL = "qwen3.5:9b"
-    #DEFAULT_LLM_MODEL = "qwen3:8b"
-    
+    DEFAULT_LLM_MODEL = "qwen2.5-coder:14b"
     LLM_MODEL = os.getenv("LLM_MODEL", DEFAULT_LLM_MODEL)
+    #LLM_MODEL = os.getenv("LLM_MODEL", "gemma3:4b")
 
-    # OLD LINE -- LLM_MODEL = os.getenv("LLM_MODEL", "gemma3:4b")
     LLM_TIMEOUT_SECONDS = int(os.getenv("LLM_TIMEOUT_SECONDS", "300"))
 
-
+    #POSTGRES DB 
     DB_HOST = os.getenv("DB_HOST", "10.0.0.110")
     DB_PORT = os.getenv("DB_PORT", "5432")
     DB_USER = os.getenv("DB_USER", "vulnstrike")

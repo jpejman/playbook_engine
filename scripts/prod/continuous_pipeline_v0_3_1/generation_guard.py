@@ -1,7 +1,7 @@
 """
 Generation run guard
-Version: v0.2.2
-Timestamp (UTC): 2026-04-21T00:00:00Z
+Version: v0.3.1
+Timestamp (UTC): 2026-04-22T00:00:00Z
 
 Purpose:
 - Determine whether a CVE already has a usable completed generation
@@ -22,11 +22,6 @@ class GenerationRunGuard:
         """
         Returns True only if the CVE already has a completed generation
         with usable finalized output.
-
-        IMPORTANT:
-        - We intentionally do NOT use `response` here.
-        - Raw model output may be present while normalized/finalized output is empty.
-        - Matching is case-insensitive on cve_id.
         """
         row = self.db.fetch_one(
             """

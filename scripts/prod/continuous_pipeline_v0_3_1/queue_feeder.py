@@ -34,7 +34,7 @@ class QueueFeederService:
             SELECT EXISTS (
                 SELECT 1
                 FROM public.cve_queue
-                WHERE UPPER(cve_id) = UPPER(%s)
+                WHERE cve_id = %s
                   AND status IN ('pending', 'processing')
             ) AS exists
             """,
@@ -50,7 +50,7 @@ class QueueFeederService:
                     """
                     INSERT INTO public.cve_queue (cve_id, status, created_at, updated_at, retry_count, source)
                     VALUES (%s, 'pending', NOW(), NOW(), 0, %s)
-                    ON CONFLICT (cve_id) DO UPDATE
+                    ON CONFLICT (cve_id) DO UPDATE 
                     SET status = EXCLUDED.status,
                         updated_at = NOW(),
                         source = EXCLUDED.source,
@@ -60,28 +60,23 @@ class QueueFeederService:
                     (cve_id, source),
                 )
             else:
-                # Default mode: allow reactivation of historical rows that are not actively queued
+                # Default mode: insert only if cve_id does not already exist
+                # Do NOT reactivate failed/completed rows automatically
                 row = self.db.execute_returning_one(
                     """
                     INSERT INTO public.cve_queue (cve_id, status, created_at, updated_at, retry_count, source)
                     VALUES (%s, 'pending', NOW(), NOW(), 0, %s)
-                    ON CONFLICT (cve_id) DO UPDATE
-                    SET status = 'pending',
-                        updated_at = NOW(),
-                        source = EXCLUDED.source,
-                        retry_count = 0
-                    WHERE public.cve_queue.status IN ('failed', 'completed', 'blocked_missing_context')
+                    ON CONFLICT (cve_id) DO NOTHING
                     RETURNING id
                     """,
                     (cve_id, source),
                 )
             return bool(row and row.get('id'))
         except Exception as e:
+            # Log the error but don't crash - just return False
             import logging
             logging.getLogger(__name__).warning(f"Failed to enqueue CVE {cve_id}: {e}")
             return False
-
-
 
     def fill_from_opensearch(self, page_size: int, max_scan: int, target_enqueue: int, 
                            max_scan_windows: int = 10, max_total_scan: int = 5000, 
@@ -119,7 +114,6 @@ class QueueFeederService:
         """Original offset-based pagination implementation."""
         scanned = 0
         enqueued = 0
-        failed_enqueue = 0
         skipped_existing_queue = 0
         skipped_existing_generation = 0
         skipped_in_production = 0
@@ -151,7 +145,6 @@ class QueueFeederService:
             
             window_enqueued = 0
             window_scanned = 0
-            window_failed_enqueue = 0
             window_skipped_queue = 0
             window_skipped_generation = 0
             window_skipped_production = 0
@@ -181,15 +174,9 @@ class QueueFeederService:
                     if scanned >= max_total_scan or enqueued >= target_enqueue:
                         break
                     continue
-                inserted = self.enqueue_cve(cve_id, source='opensearch_nvd', force_requeue_completed=False)
-
-                if inserted:
+                if self.enqueue_cve(cve_id, source='opensearch_nvd', force_requeue_completed=False):
                     enqueued += 1
                     window_enqueued += 1
-                else:
-                    failed_enqueue += 1
-                    window_failed_enqueue += 1
-                    logger.warning(f"ENQUEUE_FALSE candidate={cve_id}")
                 if scanned >= max_total_scan or enqueued >= target_enqueue:
                     break
             
@@ -197,9 +184,8 @@ class QueueFeederService:
             offset += page_size
             
             logger.info(f"Window {windows_scanned}: scanned={window_scanned}, enqueued={window_enqueued}, "
-                       f"failed_enqueue={window_failed_enqueue}, skipped_queue={window_skipped_queue}, "
-                       f"skipped_generation={window_skipped_generation}, skipped_production={window_skipped_production}, "
-                       f"offset={offset-page_size}")
+                       f"skipped_queue={window_skipped_queue}, skipped_generation={window_skipped_generation}, "
+                       f"skipped_production={window_skipped_production}, offset={offset-page_size}")
             
             if window_enqueued == 0 and enqueued == 0 and windows_scanned > 1:
                 starvation_detected = True
@@ -222,9 +208,9 @@ class QueueFeederService:
                 final_zero_enqueue_reason = "Unknown reason"
             
             logger.warning(f"Zero enqueue summary: windows_scanned={windows_scanned}, "
-                         f"total_scanned={scanned}, enqueued={enqueued}, failed_enqueue={failed_enqueue}, "
-                         f"skipped_generation={skipped_existing_generation}, skipped_queue={skipped_existing_queue}, "
-                         f"skipped_production={skipped_in_production}, reason={final_zero_enqueue_reason}")
+                         f"total_scanned={scanned}, skipped_generation={skipped_existing_generation}, "
+                         f"skipped_queue={skipped_existing_queue}, skipped_production={skipped_in_production}, "
+                         f"reason={final_zero_enqueue_reason}")
 
         return QueueFillSummary(
             scanned=scanned,
@@ -240,7 +226,6 @@ class QueueFeederService:
         """Persistent cursor-based pagination implementation."""
         scanned = 0
         enqueued = 0
-        failed_enqueue = 0
         skipped_existing_queue = 0
         skipped_existing_generation = 0
         skipped_in_production = 0
@@ -296,7 +281,6 @@ class QueueFeederService:
             
             window_scanned = 0
             window_enqueued = 0
-            window_failed_enqueue = 0
             window_skipped_queue = 0
             window_skipped_generation = 0
             window_skipped_production = 0
@@ -328,15 +312,9 @@ class QueueFeederService:
                     if scanned >= max_total_scan or enqueued >= target_enqueue:
                         break
                     continue
-                inserted = self.enqueue_cve(cve_id, source='opensearch_nvd', force_requeue_completed=False)
-
-                if inserted:
+                if self.enqueue_cve(cve_id, source='opensearch_nvd', force_requeue_completed=False):
                     enqueued += 1
                     window_enqueued += 1
-                else:
-                    failed_enqueue += 1
-                    window_failed_enqueue += 1
-                    logger.warning(f"ENQUEUE_FALSE candidate={cve_id}")
                 if scanned >= max_total_scan or enqueued >= target_enqueue:
                     break
             
@@ -350,9 +328,8 @@ class QueueFeederService:
                 search_after = None
             
             logger.info(f"Page processed: scanned={window_scanned}, enqueued={window_enqueued}, "
-                       f"failed_enqueue={window_failed_enqueue}, skipped_queue={window_skipped_queue}, "
-                       f"skipped_generation={window_skipped_generation}, skipped_production={window_skipped_production}, "
-                       f"total_scanned={scanned}, total_enqueued={enqueued}")
+                       f"skipped_queue={window_skipped_queue}, skipped_generation={window_skipped_generation}, "
+                       f"skipped_production={window_skipped_production}, total_scanned={scanned}, total_enqueued={enqueued}")
             
             # Save state after processing page
             if last_sort_values and len(last_sort_values) >= 2:
@@ -385,15 +362,15 @@ class QueueFeederService:
         # Final summary logging
         if enqueued == 0:
             if skipped_existing_generation > 0:
-                logger.warning(f"Zero enqueue: All {scanned} scanned CVEs already have completed non-empty generations (failed_enqueue={failed_enqueue})")
+                logger.warning(f"Zero enqueue: All {scanned} scanned CVEs already have completed non-empty generations")
             elif skipped_existing_queue > 0:
-                logger.warning(f"Zero enqueue: All {scanned} scanned CVEs already in queue (pending/processing) (failed_enqueue={failed_enqueue})")
+                logger.warning(f"Zero enqueue: All {scanned} scanned CVEs already in queue (pending/processing)")
             elif skipped_in_production > 0:
-                logger.warning(f"Zero enqueue: All {scanned} scanned CVEs already in production (failed_enqueue={failed_enqueue})")
+                logger.warning(f"Zero enqueue: All {scanned} scanned CVEs already in production")
             elif scanned == 0:
-                logger.warning(f"Zero enqueue: No CVEs scanned (failed_enqueue={failed_enqueue})")
+                logger.warning("Zero enqueue: No CVEs scanned")
             else:
-                logger.warning(f"Zero enqueue: Unknown reason (failed_enqueue={failed_enqueue})")
+                logger.warning("Zero enqueue: Unknown reason")
         
         return QueueFillSummary(
             scanned=scanned,
